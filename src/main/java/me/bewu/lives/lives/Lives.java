@@ -18,6 +18,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -230,6 +231,8 @@ public final class Lives extends JavaPlugin implements Listener {
                         playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
                         ItemStack life = new ItemStack(Material.EMERALD);
                         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+                        ItemMeta lifeMeta = life.getItemMeta();
+                        lifeMeta.setDisplayName(getConfig().getString("itemName"));
                         player.getInventory().addItem(life);
                         player.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(player.getName()) + " live/s.");
                     }
