@@ -1,7 +1,7 @@
 **Lives plugin v1.4**
 =================
 
-This is a repository of my 1.15.2 Minecraft plugin.
+This is a repository of my 1.15 Minecraft plugin.
 
 
 ## What does this plugin do? ##
@@ -10,13 +10,13 @@ This plugin adds every player lives. When someone looses his last live, his game
 ## Commands ##
 You can see all commands in-game by using /lives help
 
-/lives reset [n] - resets lives counter for everyone to n lives (def 3)
-/lives get [Player] - tells you how many lives the player has
-/lives give [n] - gives you n live items (def 1)
-/lives [start | stop] - stops/starts lives counting
-/lives status - tells the status of lives counting
-/lives reset_config - resets config to default values
-/lives [save | load] - saves/loads lives to/from file
+- **/lives reset [n]** - resets lives counter for everyone to n lives (def 3)
+- **/lives get [Player]** - tells you how many lives the player has
+- **/lives give [n]** - gives you n live items (def 1)
+- **/lives [start | stop]** - stops/starts lives counting
+- **/lives status** - tells the status of lives counting
+- **/lives reset_config** - resets config to default values
+- **/lives [save | load]** - saves/loads lives to/from file
 
 ## Config file ##
 Structure of config file:
@@ -29,9 +29,9 @@ Structure of config file:
     defStarted: true
     itemName: Live
 
-autoSave - plugin saves lives automatically to file
-autoLoad - plugin loads lives automatically from file on enable
-resetLives - number of lives to give on reset by default
-onJoinLives - number of lives player gets when joining for the first time
-defStarted - if lives counting should be on or off by default
-itemName - name of live item
+- **autoSave** - plugin saves lives automatically to file
+- **autoLoad** - plugin loads lives automatically from file on enable
+- **resetLives** - number of lives to give on reset by default
+- **onJoinLives** - number of lives player gets when joining for the first time
+- **defStarted** - if lives counting should be on or off by default
+- **itemName** - name of live item
