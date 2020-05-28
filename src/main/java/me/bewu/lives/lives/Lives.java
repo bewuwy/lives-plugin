@@ -97,7 +97,7 @@ public final class Lives extends JavaPlugin implements Listener {
 
         if(sender instanceof Player) {
             Player player = (Player) sender;
-            if (command.getName().equals("lives")) {
+            if (command.getName().equalsIgnoreCase("lives") || command.getName().equalsIgnoreCase("l")) {
                 if (args.length == 0) {
                     player.sendMessage("You have got: " + String.valueOf(playersLives.get(player.getName())) + " live/s.");
 
@@ -118,7 +118,7 @@ public final class Lives extends JavaPlugin implements Listener {
                         player.spigot().sendMessage(message);
                     }
 
-                } else if (args[0].equals("reset")) {
+                } else if (args[0].equalsIgnoreCase("reset")) {
                     if (player.hasPermission("lives.reset")) {
 
                         // List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
@@ -136,12 +136,18 @@ public final class Lives extends JavaPlugin implements Listener {
                                 if (StringUtils.isNumeric(args[1])) {
                                     playersLives.put(i, Integer.valueOf(args[1]));
                                     player.sendMessage(ChatColor.GREEN + "Reset lives to " + args[1]);
+                                    if(getConfig().getBoolean("autoSave")) {
+                                        saveLives();
+                                    }
                                 } else {
                                     player.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset [number]");
                                 }
                             } else {
                                 playersLives.put(i, getConfig().getInt("resetLives"));
                                 player.sendMessage(ChatColor.GREEN + "Reset lives to " + getConfig().getInt("resetLives"));
+                                if(getConfig().getBoolean("autoSave")) {
+                                    saveLives();
+                                }
                             }
                             // player.sendMessage(String.valueOf(i) + ": " + playersLives.get(i));
                             // player.sendMessage(String.valueOf(playersLives));
@@ -149,7 +155,7 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("get")) {
+                } else if (args[0].equalsIgnoreCase("get")) {
                     if (player.hasPermission("lives.get")) {
                         // player.sendMessage(String.valueOf(playersLives));
                         if (playersLives.containsKey(args[1])) {
@@ -160,35 +166,46 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("give")) {
+                } else if (args[0].equalsIgnoreCase("give")) {
                     if (player.hasPermission("lives.give")) {
                         if (args.length > 1) {
                             if (StringUtils.isNumeric(args[1])) {
-                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "give " + player.getName() + " minecraft:emerald{Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}],display:{Name:\"{\\\"text\\\":\\\"" + getConfig().getString("itemName") + "\\\"}\"}} " + args[1]);
+                                ItemStack life = new ItemStack(Material.EMERALD);
+                                life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+                                ItemMeta lifeMeta = life.getItemMeta();
+                                lifeMeta.setDisplayName(getConfig().getString("itemName"));
+                                life.setItemMeta(lifeMeta);
+                                life.setAmount(Integer.parseInt(args[1]));
+                                player.getInventory().addItem(life);
                             } else {
                                 player.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives get [number]");
                             }
                         } else {
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "give " + player.getName() + " minecraft:emerald{Enchantments:[{id:\"minecraft:unbreaking\",lvl:1}],display:{Name:\"{\\\"text\\\":\\\"" + getConfig().getString("itemName") + "\\\"}\"}} 1");
+                            ItemStack life = new ItemStack(Material.EMERALD);
+                            life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+                            ItemMeta lifeMeta = life.getItemMeta();
+                            lifeMeta.setDisplayName(getConfig().getString("itemName"));
+                            life.setItemMeta(lifeMeta);
+                            player.getInventory().addItem(life);
                         }
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("stop")) {
+                } else if (args[0].equalsIgnoreCase("stop")) {
                     if (player.hasPermission("lives.control")) {
                         player.sendMessage(ChatColor.RED + "Stopped counting lives.");
                         started = false;
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("start")) {
+                } else if (args[0].equalsIgnoreCase("start")) {
                     if (player.hasPermission("lives.control")) {
                         player.sendMessage(ChatColor.GREEN + "Started counting lives.");
                         started = true;
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("status")) {
+                } else if (args[0].equalsIgnoreCase("status")) {
                     if (player.hasPermission("lives.status")) {
                         if (started) {
                             player.sendMessage(ChatColor.GREEN + "Lives counting is on.");
@@ -198,7 +215,7 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("reset_config")) {
+                } else if (args[0].equalsIgnoreCase("reset_config")) {
 
                     if (player.hasPermission("lives.config.reset")) {
                         File file = new File(getDataFolder(), "config.yml");
@@ -208,7 +225,7 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("save")) {
+                } else if (args[0].equalsIgnoreCase("save")) {
 
                     if (player.hasPermission("lives.save")) {
                         saveLives();
@@ -216,7 +233,7 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("load")) {
+                } else if (args[0].equalsIgnoreCase("load")) {
 
                     if (player.hasPermission("lives.save")) {
                         loadLives();
@@ -224,15 +241,16 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equals("help")) {
+                } else if (args[0].equalsIgnoreCase("help")) {
                     player.sendMessage(" /lives - tells you how many lives you have \n /lives extract - extracts one of your lives to an item \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
-                } else if(args[0].equals("extract")) {
+                } else if(args[0].equalsIgnoreCase("extract")) {
                     if(playersLives.get(player.getName()) > 1) {
                         playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
                         ItemStack life = new ItemStack(Material.EMERALD);
                         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
                         ItemMeta lifeMeta = life.getItemMeta();
                         lifeMeta.setDisplayName(getConfig().getString("itemName"));
+                        life.setItemMeta(lifeMeta);
                         player.getInventory().addItem(life);
                         player.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(player.getName()) + " live/s.");
                     }
