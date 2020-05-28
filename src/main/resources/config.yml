@@ -1,0 +1,8 @@
+#Lives plugin config file
+version: 1
+autoSave: true
+autoLoad: true
+resetLives: 3
+onJoinLives: 3
+defStarted: true
+itemName: Live

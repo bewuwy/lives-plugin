@@ -1,0 +1,30 @@
+name: Lives
+version: 1.4
+author: bewu
+main: me.bewu.zycia.zycia.Zycia
+api-version: 1.13
+commands:
+  lives:
+    description: Main command to get help use /lives help
+permissions:
+  lives.reset:
+    description: Allows you to reset the lives counter
+    default: op
+  lives.get:
+    description: Allows you to see other peoples lives.
+    default: true
+  lives.give:
+    description: Allows you to give you the live item.
+    default: op
+  lives.control:
+    description: Allows you to turn counting lives on and off.
+    default: op
+  lives.status:
+    description: Allows you to see if lives counting is on.
+    default: true
+  lives.config.reset:
+    description: Allows you to reset config file from command.
+    default: op
+  lives.save:
+    description: Allows you to save/load lives to/from file.
+    default: op
