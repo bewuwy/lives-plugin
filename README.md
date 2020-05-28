@@ -1,17 +1,19 @@
-**Lives plugin v1.4**
+**Lives plugin v1.4.2**
 =================
 
 This is a repository of my 1.15 Minecraft plugin.
 
 
 ## What does this plugin do? ##
-This plugin adds every player lives. When someone looses his last live, his gamemode is changed to spectator until the lives counter is reseted. You loose a live if you die and you can get it by using a certain item.
+This plugin adds every player lives. When someone looses his last live, his gamemode is changed to spectator until the lives counter is reset. You loose a live if you die and you can get it by using a certain item.
 
 ## Commands ##
 You can see all commands in-game by using /lives help
 
-- **/lives reset [n]** - resets lives counter for everyone to n lives (def 3)
+- **/lives** - tells you how many lives you have
 - **/lives get [Player]** - tells you how many lives the player has
+- **/lives extract** - extracts one of your lives to an item
+- **/lives reset [n]** - resets lives counter for everyone to n lives (def 3)
 - **/lives give [n]** - gives you n live items (def 1)
 - **/lives [start | stop]** - stops/starts lives counting
 - **/lives status** - tells the status of lives counting

@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -97,10 +98,10 @@ public final class Lives extends JavaPlugin implements Listener {
             Player player = (Player) sender;
             if (command.getName().equals("lives")) {
                 if (args.length == 0) {
-                    player.sendMessage("You have got: " + String.valueOf(playersLives.get(player.getName())) + " life/s.");
+                    player.sendMessage("You have got: " + String.valueOf(playersLives.get(player.getName())) + " live/s.");
+
 
                     Random rand = new Random();
-
                     int rand_int1 = rand.nextInt(15);
 
                     if (rand_int1 == 0) {
@@ -223,9 +224,23 @@ public final class Lives extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 } else if (args[0].equals("help")) {
-                    player.sendMessage(" /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives get [Player] - tells you how many lives the player has \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
+                    player.sendMessage(" /lives - tells you how many lives you have \n /lives extract - extracts one of your lives to an item \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
+                } else if(args[0].equals("extract")) {
+                    if(playersLives.get(player.getName()) > 1) {
+                        playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
+                        ItemStack life = new ItemStack(Material.EMERALD);
+                        life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+                        player.getInventory().addItem(life);
+                        player.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(player.getName()) + " live/s.");
+                    }
+                    else {
+                        player.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
+                    }
+                    if(getConfig().getBoolean("autoSave")) {
+                        saveLives();
+                    }
                 } else {
-                    player.sendMessage(ChatColor.RED + "Invalid syntax! Use: /help lives to see commands");
+                    player.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives help to see commands");
                 }
             }
         }
@@ -242,7 +257,7 @@ public final class Lives extends JavaPlugin implements Listener {
         if(started) {
             Player player = (Player) e.getEntity();
             playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
-            player.sendMessage(ChatColor.RED + "You lost one life. You now have " + playersLives.get(player.getName()) + " life/s.");
+            player.sendMessage(ChatColor.RED + "You lost one life. You now have " + playersLives.get(player.getName()) + " live/s.");
             if(getConfig().getBoolean("autoSave")) {
                 saveLives();
             }
@@ -268,7 +283,7 @@ public final class Lives extends JavaPlugin implements Listener {
                     player.getInventory().getItemInMainHand().setAmount(0);
                 }
                 playersLives.put(player.getName(), playersLives.get(player.getName()) + 1);
-                player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getName()) + " lives.");
+                player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getName()) + " live/s.");
                 if(getConfig().getBoolean("autoSave")) {
                     saveLives();
                 }
