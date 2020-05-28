@@ -244,7 +244,7 @@ public final class Zycia extends JavaPlugin implements Listener {
                 }
             }
             else if(args[0].equals("help")) {
-                player.sendMessage("Main command \n Usage: /lives [reset | get | give] \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives get [Player] - tells you how many lives the player has \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
+                player.sendMessage("/lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives get [Player] - tells you how many lives the player has \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
             }
             else {
                 player.sendMessage(ChatColor.RED + "Invalid syntax! Use: /help lives to see commands");
