@@ -62,15 +62,26 @@ public final class Lives extends JavaPlugin implements Listener {
 
                 if(!getConfig().getString("version").equals(getDescription().getVersion())) {
                     String oldVer = getConfig().getString("version");
-                    file.renameTo(new File(getDataFolder(), "config" + getConfig().getString("version") + ".yml"));
+
+                    HashMap<String, Object> oldConf = new HashMap<String, Object>();
+                    for(String i : getConfig().getKeys(false)) {
+                        oldConf.put(i, getConfig().get(i));
+                    }
+
+                    file.delete();
                     saveDefaultConfig();
 
                     getLogger().info("-------------------------------------------------");
-                    getLogger().info("Config.yml outdated (" + oldVer + ")");
-                    getLogger().info("New config file was created, you can see old options in config" + oldVer +".yml");
+                    getLogger().info("Config.yml outdated (v" + oldVer + ")");
+                    getLogger().info("Updated it to the latest version.");
                     getLogger().info("-------------------------------------------------");
 
+                    for(String i : oldConf.keySet()) {
+                        getConfig().set(i, oldConf.get(i));
+                    }
+
                     getConfig().set("version", getDescription().getVersion());
+
                     saveConfig();
                 }
             }
