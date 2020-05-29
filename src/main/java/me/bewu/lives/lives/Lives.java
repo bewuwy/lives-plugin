@@ -6,7 +6,6 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -30,7 +29,8 @@ public final class Lives extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        // getLogger().info("Plugin started");
+
+        //Creates lives.yml if not existing
         createCustomConfig();
 
         if(getConfig().getBoolean("autoLoad")) {
@@ -38,16 +38,6 @@ public final class Lives extends JavaPlugin implements Listener {
         }
 
         Bukkit.getPluginManager().registerEvents(this, this);
-
-        List<String> players = new ArrayList<String>();
-
-        for(Player i: Bukkit.getOnlinePlayers()) {
-            players.add(i.getName());
-        }
-
-        for(String i: players) {
-            playersLives.put(i, 3);
-        }
 
         try {
             if (!getDataFolder().exists()) {
@@ -60,6 +50,7 @@ public final class Lives extends JavaPlugin implements Listener {
             } else {
                 getLogger().info("Config.yml found, loading!");
 
+                //checking config version
                 if(!getConfig().getString("version").equals(getDescription().getVersion())) {
                     String oldVer = getConfig().getString("version");
 
@@ -81,20 +72,13 @@ public final class Lives extends JavaPlugin implements Listener {
                     }
 
                     getConfig().set("version", getDescription().getVersion());
-
                     saveConfig();
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-    }
-
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
     }
 
     Map<String, Integer> playersLives = new HashMap<>();
@@ -104,19 +88,19 @@ public final class Lives extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        List<String> players = new ArrayList<String>();
-
 
             if (command.getName().equalsIgnoreCase("lives") || command.getName().equalsIgnoreCase("l")) {
+                //command /lives
                 if (args.length == 0) {
                     if(sender instanceof Player) {
-                        sender.sendMessage("You have got: " + String.valueOf(playersLives.get(sender.getName())) + " live/s.");
 
+                        sender.sendMessage(ChatColor.GREEN + "You have got: " + String.valueOf(playersLives.get(sender.getName())) + " live/s.");
+
+                        //This is the add - chance of the add appearing
                         Random rand = new Random();
                         int rand_int1 = rand.nextInt(15);
 
                         if (rand_int1 == 0) {
-                            //ad
                             TextComponent message = new TextComponent("This plugin was made by ");
                             TextComponent bewu = new TextComponent(ChatColor.AQUA + "bewu");
                             message.addExtra(bewu);
@@ -127,15 +111,16 @@ public final class Lives extends JavaPlugin implements Listener {
                             message.addExtra(".");
                             sender.spigot().sendMessage(message);
                         }
-                    }
-                    else {
+                    } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
 
-                } else if (args[0].equalsIgnoreCase("reset")) {
+                }
+                //command /lives reset
+                else if (args[0].equalsIgnoreCase("reset")) {
                     if (sender.hasPermission("lives.reset")) {
 
-                        // List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+                        List<String> players = new ArrayList<String>();
                         for (Player i : Bukkit.getOnlinePlayers()) {
                             players.add(i.getName());
                             if (i.getGameMode() == GameMode.SPECTATOR) {
@@ -149,7 +134,7 @@ public final class Lives extends JavaPlugin implements Listener {
                             if (args.length > 1) {
                                 if (StringUtils.isNumeric(args[1])) {
                                     playersLives.put(i, Integer.valueOf(args[1]));
-                                    sender.sendMessage(ChatColor.GREEN + "Reset lives to " + args[1]);
+                                    sender.sendMessage(ChatColor.GREEN + "Reset " + i + " lives to " + args[1]);
                                     if(getConfig().getBoolean("autoSave")) {
                                         saveLives();
                                     }
@@ -163,15 +148,15 @@ public final class Lives extends JavaPlugin implements Listener {
                                     saveLives();
                                 }
                             }
-                            // player.sendMessage(String.valueOf(i) + ": " + playersLives.get(i));
-                            // player.sendMessage(String.valueOf(playersLives));
                         }
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("get")) {
+                }
+                //command /lives get
+                else if (args[0].equalsIgnoreCase("get")) {
                     if (sender.hasPermission("lives.get")) {
-                        // player.sendMessage(String.valueOf(playersLives));
+
                         if (playersLives.containsKey(args[1])) {
                             sender.sendMessage(args[1] + " has got " + String.valueOf(playersLives.get(args[1])) + " live/s.");
                         } else {
@@ -180,65 +165,60 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("give")) {
+                }
+                //command /lives give
+                else if (args[0].equalsIgnoreCase("give")) {
                     if(sender instanceof Player) {
                         if (sender.hasPermission("lives.give")) {
+
                             if (args.length > 1) {
                                 if (StringUtils.isNumeric(args[1])) {
-                                    ItemStack life = new ItemStack(Material.EMERALD);
-                                    life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
-                                    ItemMeta lifeMeta = life.getItemMeta();
-                                    lifeMeta.setDisplayName(getConfig().getString("itemName"));
-                                    life.setItemMeta(lifeMeta);
-                                    life.setAmount(Integer.parseInt(args[1]));
-                                    Player player = (Player) sender;
-                                    player.getInventory().addItem(life);
+                                    giveItem((Player) sender, Integer.parseInt(args[1]));
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives get [number]");
                                 }
                             } else {
-                                ItemStack life = new ItemStack(Material.EMERALD);
-                                life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
-                                ItemMeta lifeMeta = life.getItemMeta();
-                                lifeMeta.setDisplayName(getConfig().getString("itemName"));
-                                life.setItemMeta(lifeMeta);
-                                Player player = (Player) sender;
-                                player.getInventory().addItem(life);
+                                giveItem((Player) sender, 1);
                             }
                         } else {
                             sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                         }
-                    }
-                    else {
+                    } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
-                } else if (args[0].equalsIgnoreCase("stop")) {
+                }
+                //command /lives stop
+                else if (args[0].equalsIgnoreCase("stop")) {
                     if (sender.hasPermission("lives.control")) {
+
                         sender.sendMessage(ChatColor.RED + "Stopped counting lives.");
                         started = false;
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("start")) {
+                }
+                //command /lives start
+                else if (args[0].equalsIgnoreCase("start")) {
                     if (sender.hasPermission("lives.control")) {
+
                         sender.sendMessage(ChatColor.GREEN + "Started counting lives.");
                         started = true;
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("status")) {
-                    if (sender.hasPermission("lives.status")) {
-                        if (started) {
-                            sender.sendMessage(ChatColor.GREEN + "Lives counting is on.");
-                        } else {
-                            sender.sendMessage(ChatColor.RED + "Lives counting is off.");
-                        }
+                }
+                //command /lives status
+                else if (args[0].equalsIgnoreCase("status")) {
+                    if (started) {
+                        sender.sendMessage(ChatColor.GREEN + "Lives counting is on.");
                     } else {
-                        sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
+                        sender.sendMessage(ChatColor.RED + "Lives counting is off.");
                     }
-                } else if (args[0].equalsIgnoreCase("reset_config")) {
-
+                }
+                //command /lives reset_config
+                else if (args[0].equalsIgnoreCase("reset_config")) {
                     if (sender.hasPermission("lives.config.reset")) {
+
                         File file = new File(getDataFolder(), "config.yml");
                         file.delete();
                         saveDefaultConfig();
@@ -246,47 +226,53 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("save")) {
-
+                }
+                //command /lives save
+                else if (args[0].equalsIgnoreCase("save")) {
                     if (sender.hasPermission("lives.save")) {
+
                         saveLives();
                         sender.sendMessage(ChatColor.GREEN + "Successfully saved lives to file!");
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("load")) {
-
+                }
+                //command /lives load
+                else if (args[0].equalsIgnoreCase("load")) {
                     if (sender.hasPermission("lives.save")) {
+
                         loadLives();
                         sender.sendMessage(ChatColor.GREEN + "Successfully loaded lives from file!");
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
-                } else if (args[0].equalsIgnoreCase("help")) {
+                }
+                //command /lives help
+                else if (args[0].equalsIgnoreCase("help")) {
                     sender.sendMessage(" /lives - tells you how many lives you have \n /lives extract - extracts one of your lives to an item \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
-                } else if(args[0].equalsIgnoreCase("extract")) {
+                }
+                //command /lives extract
+                else if(args[0].equalsIgnoreCase("extract")) {
                     if(sender instanceof Player) {
+
                         if (playersLives.get(sender.getName()) > 1) {
                             playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
-                            ItemStack life = new ItemStack(Material.EMERALD);
-                            life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
-                            ItemMeta lifeMeta = life.getItemMeta();
-                            lifeMeta.setDisplayName(getConfig().getString("itemName"));
-                            life.setItemMeta(lifeMeta);
-                            Player player = (Player) sender;
-                            player.getInventory().addItem(life);
-                            sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(player.getName()) + " live/s.");
-                        } else {
+
+                            giveItem((Player) sender, 1);
+                            sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+                        }
+                        else {
                             sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
                         }
                         if (getConfig().getBoolean("autoSave")) {
                             saveLives();
                         }
-                    }
-                    else {
+                    } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
-                } else {
+                }
+                //wrong command
+                else {
                     sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives help to see commands");
                 }
             }
@@ -295,35 +281,31 @@ public final class Lives extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        // getLogger().info("Someone died");
+        //Someone died - removing life
         if(started) {
-            Player player = (Player) e.getEntity();
+
+            Player player = e.getEntity();
             playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
             player.sendMessage(ChatColor.RED + "You lost one life. You now have " + playersLives.get(player.getName()) + " live/s.");
+
             if(getConfig().getBoolean("autoSave")) {
                 saveLives();
             }
-
             if (playersLives.get(player.getName()) < 1) {
                 getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " lost his last life.");
                 player.setGameMode(GameMode.SPECTATOR);
             }
         }
-//        else {
-//            e.getEntity().sendMessage("You got lucky and didn't lose a life.");
-//        }
     }
 
     @EventHandler
     public void add_life(PlayerInteractEvent e) {
+        //using the emerald life item
         Player player = e.getPlayer();
         if(e.hasItem()) {
             if (Objects.requireNonNull(e.getItem()).getType() == Material.EMERALD && e.getItem().containsEnchantment(Enchantment.DURABILITY)) {
-                if (player.getInventory().getItemInMainHand().getAmount() > 1) {
-                    player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
-                } else {
-                    player.getInventory().getItemInMainHand().setAmount(0);
-                }
+
+                player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
                 playersLives.put(player.getName(), playersLives.get(player.getName()) + 1);
                 player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getName()) + " live/s.");
                 if(getConfig().getBoolean("autoSave")) {
@@ -334,7 +316,8 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void nowy_gracz(PlayerJoinEvent e) {
+    public void newPlayer(PlayerJoinEvent e) {
+        //adding player if not in the database
         if(!playersLives.containsKey(e.getPlayer().getName())) {
             playersLives.put(e.getPlayer().getName(), getConfig().getInt("onJoinLives"));
             if(getConfig().getBoolean("autoSave")) {
@@ -363,6 +346,7 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     public void saveLives() {
+        //saving lives to file
         for(Map.Entry me : playersLives.entrySet()) {
             customConfig.set((String) me.getKey(), me.getValue());
         }
@@ -376,6 +360,7 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     public void loadLives() {
+        //loading lives from file
         try {
             customConfig.load(customConfigFile);
         } catch (IOException | InvalidConfigurationException e) {
@@ -386,6 +371,17 @@ public final class Lives extends JavaPlugin implements Listener {
             playersLives.put(i, customConfig.getInt(i));
         }
         getLogger().info("Loaded lives from file");
+    }
+
+    public void giveItem(Player player, int amount) {
+        //just to make code shorter - give item method
+        ItemStack life = new ItemStack(Material.EMERALD);
+        life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        ItemMeta lifeMeta = life.getItemMeta();
+        lifeMeta.setDisplayName(getConfig().getString("itemName"));
+        life.setItemMeta(lifeMeta);
+        life.setAmount(amount);
+        player.getInventory().addItem(life);
     }
 
 }

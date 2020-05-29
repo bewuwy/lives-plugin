@@ -1,5 +1,5 @@
 name: Lives
-version: 1.5
+version: 1.5.1
 author: bewu
 main: me.bewu.lives.lives.Lives
 api-version: 1.13
@@ -20,9 +20,6 @@ permissions:
   lives.control:
     description: Allows you to turn counting lives on and off.
     default: op
-  lives.status:
-    description: Allows you to see if lives counting is on.
-    default: true
   lives.config.reset:
     description: Allows you to reset config file from command.
     default: op
