@@ -175,7 +175,7 @@ public final class Lives extends JavaPlugin implements Listener {
                                 if (StringUtils.isNumeric(args[1])) {
                                     giveItem((Player) sender, Integer.parseInt(args[1]));
                                 } else {
-                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives get [number]");
+                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give [number]");
                                 }
                             } else {
                                 giveItem((Player) sender, 1);
@@ -184,7 +184,27 @@ public final class Lives extends JavaPlugin implements Listener {
                             sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                         }
                     } else {
-                        sender.sendMessage("You can't use that command from the console!");
+                        if(args.length > 1) {
+                            if(getServer().getPlayerExact(args[1]) != null) {
+                                if (args.length > 2) {
+                                    if(StringUtils.isNumeric(args[2])) {
+                                        giveItem(getServer().getPlayerExact(args[1]), Integer.parseInt(args[2]));
+                                        sender.sendMessage("Gave 1 live item to " + args[1]);
+                                    } else {
+                                        sender.sendMessage("Invalid syntax! From console use: /lives give [Player] [number]");
+                                    }
+                                }
+                                else {
+                                    giveItem(getServer().getPlayerExact(args[1]), 1);
+                                    sender.sendMessage("Gave 1 live item to " + args[1]);
+                                }
+                            } else  {
+                                sender.sendMessage("Player must be online!");
+                            }
+                        }
+                        else {
+                            sender.sendMessage("Invalid syntax! From console use: /lives give [Player] {number}");
+                        }
                     }
                 }
                 //command /lives stop
@@ -249,7 +269,7 @@ public final class Lives extends JavaPlugin implements Listener {
                 }
                 //command /lives help
                 else if (args[0].equalsIgnoreCase("help")) {
-                    sender.sendMessage(" /lives - tells you how many lives you have \n /lives extract - extracts one of your lives to an item \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
+                    sender.sendMessage("Alias: /l \n /lives - tells you how many lives you have \n /lives extract - extracts one of your lives to an item \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
                 }
                 //command /lives extract
                 else if(args[0].equalsIgnoreCase("extract")) {
@@ -290,6 +310,10 @@ public final class Lives extends JavaPlugin implements Listener {
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
+                }
+                //command /lives version
+                else if(args[0].equalsIgnoreCase("version")) {
+                    sender.sendMessage("The plugin version is " + getDescription().getVersion());
                 }
                 //wrong command
                 else {
