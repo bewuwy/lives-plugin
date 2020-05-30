@@ -26,12 +26,13 @@ You can see all commands in-game by using /lives help
 ## Config file ##
 Structure of config file:
 
-    version: '1.4'
+    version: 1.5.2
     autoSave: true
     autoLoad: true
     resetLives: 3
     onJoinLives: 3
     defStarted: true
+	alwaysExtract: false
     itemName: Live
 
 - **autoSave** - plugin saves lives automatically to file
@@ -39,6 +40,7 @@ Structure of config file:
 - **resetLives** - number of lives to give on reset by default
 - **onJoinLives** - number of lives player gets when joining for the first time
 - **defStarted** - if lives counting should be on or off by default
+- **alwaysExtract** - if you can always extract lives, if this is off you only can extract them when lives counting is on
 - **itemName** - name of live item
 
 ## Permissions ##

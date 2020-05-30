@@ -5,4 +5,5 @@ autoLoad: true
 resetLives: 3
 onJoinLives: 3
 defStarted: true
+alwaysExtract: false
 itemName: Live

@@ -255,17 +255,37 @@ public final class Lives extends JavaPlugin implements Listener {
                 else if(args[0].equalsIgnoreCase("extract")) {
                     if(sender instanceof Player) {
 
-                        if (playersLives.get(sender.getName()) > 1) {
-                            playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
+                        if (getConfig().getBoolean("alwaysExtract")) {
 
-                            giveItem((Player) sender, 1);
-                            sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+                            if (playersLives.get(sender.getName()) > 1) {
+                                playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
+
+                                giveItem((Player) sender, 1);
+                                sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
+                            }
+                            if (getConfig().getBoolean("autoSave")) {
+                                saveLives();
+                            }
                         }
                         else {
-                            sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
-                        }
-                        if (getConfig().getBoolean("autoSave")) {
-                            saveLives();
+                           if (started) {
+                               if (playersLives.get(sender.getName()) > 1) {
+                                   playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
+
+                                   giveItem((Player) sender, 1);
+                                   sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+                               } else {
+                                   sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
+                               }
+                               if (getConfig().getBoolean("autoSave")) {
+                                   saveLives();
+                               }
+                           }
+                           else {
+                               sender.sendMessage(ChatColor.RED + "Lives counting must be on to extract lives!");
+                           }
                         }
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
@@ -303,7 +323,7 @@ public final class Lives extends JavaPlugin implements Listener {
         //using the emerald life item
         Player player = e.getPlayer();
         if(e.hasItem()) {
-            if (Objects.requireNonNull(e.getItem()).getType() == Material.EMERALD && e.getItem().containsEnchantment(Enchantment.DURABILITY)) {
+            if (Objects.requireNonNull(e.getItem()).getType() == Material.GHAST_TEAR && e.getItem().containsEnchantment(Enchantment.DURABILITY)) {
 
                 player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
                 playersLives.put(player.getName(), playersLives.get(player.getName()) + 1);
@@ -375,7 +395,7 @@ public final class Lives extends JavaPlugin implements Listener {
 
     public void giveItem(Player player, int amount) {
         //just to make code shorter - give item method
-        ItemStack life = new ItemStack(Material.EMERALD);
+        ItemStack life = new ItemStack(Material.GHAST_TEAR);
         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
         ItemMeta lifeMeta = life.getItemMeta();
         lifeMeta.setDisplayName(getConfig().getString("itemName"));
