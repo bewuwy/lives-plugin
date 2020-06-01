@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -269,43 +270,42 @@ public final class Lives extends JavaPlugin implements Listener {
                 }
                 //command /lives help
                 else if (args[0].equalsIgnoreCase("help")) {
-                    sender.sendMessage("Alias: /l \n /lives - tells you how many lives you have \n /lives extract - extracts one of your lives to an item \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
+                    sender.sendMessage("Alias: /l \n /lives - tells you how many lives you have \n /lives extract [n] (Alias: /l ex [n]) - extracts n of your lives to an item (def 1) \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
                 }
-                //command /lives extract
-                else if(args[0].equalsIgnoreCase("extract")) {
+                //command /lives extract Alias: /l ex
+                else if(args[0].equalsIgnoreCase("extract") || args[0].equalsIgnoreCase("ex")) {
                     if(sender instanceof Player) {
 
-                        if (getConfig().getBoolean("alwaysExtract")) {
+                        if ((!getConfig().getBoolean("alwaysExtract") && started) || getConfig().getBoolean("alwaysExtract")) {
 
-                            if (playersLives.get(sender.getName()) > 1) {
-                                playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
+                            if(args.length == 1) {
+                                if (playersLives.get(sender.getName()) > 1) {
+                                    playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
 
-                                giveItem((Player) sender, 1);
-                                sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
-                            } else {
-                                sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
+                                    giveItem((Player) sender, 1);
+                                    sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
+                                }
+                            } else if(StringUtils.isNumeric(args[1])){
+                                if (playersLives.get(sender.getName()) > Integer.parseInt(args[1])) {
+                                    playersLives.put(sender.getName(), playersLives.get(sender.getName()) - Integer.parseInt(args[1]));
+
+                                    giveItem((Player) sender, Integer.parseInt(args[1]));
+                                    sender.sendMessage(ChatColor.GREEN + "You have extracted " + args[1] +  " lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "You don't have enough lives!");
+                                }
+                            }
+                            else {
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Second argument must be a number!");
                             }
                             if (getConfig().getBoolean("autoSave")) {
                                 saveLives();
                             }
                         }
                         else {
-                           if (started) {
-                               if (playersLives.get(sender.getName()) > 1) {
-                                   playersLives.put(sender.getName(), playersLives.get(sender.getName()) - 1);
-
-                                   giveItem((Player) sender, 1);
-                                   sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
-                               } else {
-                                   sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
-                               }
-                               if (getConfig().getBoolean("autoSave")) {
-                                   saveLives();
-                               }
-                           }
-                           else {
-                               sender.sendMessage(ChatColor.RED + "Lives counting must be on to extract lives!");
-                           }
+                            sender.sendMessage(ChatColor.RED + "Lives counting must be on to extract lives!");
                         }
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
@@ -352,6 +352,8 @@ public final class Lives extends JavaPlugin implements Listener {
                 player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
                 playersLives.put(player.getName(), playersLives.get(player.getName()) + 1);
                 player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getName()) + " live/s.");
+
+                //auto-save
                 if(getConfig().getBoolean("autoSave")) {
                     saveLives();
                 }
@@ -366,6 +368,25 @@ public final class Lives extends JavaPlugin implements Listener {
             playersLives.put(e.getPlayer().getName(), getConfig().getInt("onJoinLives"));
             if(getConfig().getBoolean("autoSave")) {
                 saveLives();
+            }
+        }
+    }
+
+    @EventHandler
+    public void moveBlock(InventoryClickEvent e) {
+        Player player = (Player) e.getWhoClicked();
+        if(Objects.requireNonNull(e.getCurrentItem()).getType().equals(Material.GHAST_TEAR) && e.getCurrentItem().containsEnchantment(Enchantment.DURABILITY)) {
+            if (!player.hasPermission("lives.moveItem")) {
+                e.setCancelled(true);
+
+                playersLives.put(player.getName(), playersLives.get(player.getName()) + e.getCurrentItem().getAmount());
+                e.getCurrentItem().setAmount(0);
+                player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getName()) + " live/s.");
+
+                //auto-save
+                if(getConfig().getBoolean("autoSave")) {
+                    saveLives();
+                }
             }
         }
     }

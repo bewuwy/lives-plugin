@@ -1,4 +1,4 @@
-**Lives plugin v1.5.1**
+**Lives plugin v1.5.4**
 =================
 
 This is a repository of my 1.15 Minecraft plugin.
@@ -12,7 +12,7 @@ You can see all commands in-game by using /lives help
 
 **Default commands:**
 - **/lives** - tells you how many lives you have
-- **/lives extract** - extracts one of your lives to an item
+- **/lives extract [n]** - extracts one of your lives to an item (Alias: /lives ex [n])
 - **/lives status** - tells the status of lives counting
 - **/lives get [Player]** - tells you how many lives the player has
 
@@ -63,4 +63,7 @@ Plugins Permissions:
     Default: op
   -**lives.save**:
     Allows you to save/load lives to/from file.
+    Default: op
+  -**lives.move**:
+    Allows you to move the live item.
     Default: op

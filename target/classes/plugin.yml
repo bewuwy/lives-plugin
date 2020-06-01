@@ -26,3 +26,6 @@ permissions:
   lives.save:
     description: Allows you to save/load lives to/from file.
     default: op
+  lives.moveItem:
+    description: Allows you to move item.
+    default: op

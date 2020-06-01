@@ -1,5 +1,5 @@
 name: Lives
-version: 1.5.3
+version: 1.5.4
 author: bewu
 main: me.bewu.lives.lives.Lives
 api-version: 1.13
@@ -25,4 +25,7 @@ permissions:
     default: op
   lives.save:
     description: Allows you to save/load lives to/from file.
+    default: op
+  lives.moveItem:
+    description: Allows you to move item.
     default: op
