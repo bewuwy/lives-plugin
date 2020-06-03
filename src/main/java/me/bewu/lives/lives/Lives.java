@@ -375,17 +375,19 @@ public final class Lives extends JavaPlugin implements Listener {
     @EventHandler
     public void moveBlock(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
-        if(Objects.requireNonNull(e.getCurrentItem()).getType().equals(Material.GHAST_TEAR) && e.getCurrentItem().containsEnchantment(Enchantment.DURABILITY)) {
-            if (!player.hasPermission("lives.moveItem")) {
-                e.setCancelled(true);
+        if(e.getCurrentItem() != null) {
+            if (e.getCurrentItem().getType().equals(Material.GHAST_TEAR) && e.getCurrentItem().containsEnchantment(Enchantment.DURABILITY)) {
+                if (!player.hasPermission("lives.moveItem")) {
+                    e.setCancelled(true);
 
-                playersLives.put(player.getName(), playersLives.get(player.getName()) + e.getCurrentItem().getAmount());
-                e.getCurrentItem().setAmount(0);
-                player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getName()) + " live/s.");
+                    playersLives.put(player.getName(), playersLives.get(player.getName()) + e.getCurrentItem().getAmount());
+                    e.getCurrentItem().setAmount(0);
+                    player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getName()) + " live/s.");
 
-                //auto-save
-                if(getConfig().getBoolean("autoSave")) {
-                    saveLives();
+                    //auto-save
+                    if (getConfig().getBoolean("autoSave")) {
+                        saveLives();
+                    }
                 }
             }
         }
