@@ -19,10 +19,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public final class Lives extends JavaPlugin implements Listener {
@@ -31,10 +34,16 @@ public final class Lives extends JavaPlugin implements Listener {
     public void onEnable() {
         // Plugin startup logic
 
+        //ad
+        getLogger().info("-------------------------------------------------");
+        getLogger().info("This plugin was made by bewu.");
+        getLogger().info("Please consider donating on https://ko-fi.com/bewuwy");
+        getLogger().info("-------------------------------------------------");
+
         //Creates lives.yml if not existing
         createCustomConfig();
 
-        if(getConfig().getBoolean("autoLoad")) {
+        if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoLoad")) {
             loadLives();
         }
 
@@ -46,34 +55,30 @@ public final class Lives extends JavaPlugin implements Listener {
             }
             File file = new File(getDataFolder(), "config.yml");
             if (!file.exists()) {
-                getLogger().info("Config.yml not found, creating!");
+                getLogger().info("config.yml not found, creating!");
                 saveDefaultConfig();
             } else {
-                getLogger().info("Config.yml found, loading!");
+                getLogger().info("config.yml found, loading!");
 
-                //checking config version
-                if(!getConfig().getString("version").equals(getDescription().getVersion())) {
-                    String oldVer = getConfig().getString("version");
+                //Checking config version
+                String oldVer = getConfig().getString("configVersion");
 
-                    HashMap<String, Object> oldConf = new HashMap<String, Object>();
-                    for(String i : getConfig().getKeys(false)) {
-                        oldConf.put(i, getConfig().get(i));
-                    }
+                InputStream customClassStream= getClass().getResourceAsStream("/config.yml");
+                InputStreamReader strR = new InputStreamReader(customClassStream);
+                FileConfiguration defaults = YamlConfiguration.loadConfiguration(strR);
 
-                    file.delete();
+                if(!oldVer.equals(defaults.getString("configVersion"))) {
+
+                    File oldConf = new File(getDataFolder(), "config_v" + oldVer +".yml");
+                    file.renameTo(oldConf);
                     saveDefaultConfig();
 
                     getLogger().info("-------------------------------------------------");
                     getLogger().info("Config.yml outdated (v" + oldVer + ")");
-                    getLogger().info("Updated it to the latest version.");
+                    getLogger().info("Updated it to the latest version and reset values.");
+                    getLogger().warning("You can see the old config in file config_v" + oldVer + ".yml!");
                     getLogger().info("-------------------------------------------------");
 
-                    for(String i : oldConf.keySet()) {
-                        getConfig().set(i, oldConf.get(i));
-                    }
-
-                    getConfig().set("version", getDescription().getVersion());
-                    saveConfig();
                 }
             }
         } catch (Exception e) {
@@ -83,7 +88,7 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     Map<String, Integer> playersLives = new HashMap<>();
-    boolean started = getConfig().getBoolean("defStarted");
+    boolean started = getConfig().getConfigurationSection("generalOptions").getBoolean("defStarted");
     private File customConfigFile;
     private FileConfiguration customConfig;
 
@@ -97,21 +102,6 @@ public final class Lives extends JavaPlugin implements Listener {
 
                         sender.sendMessage(ChatColor.GREEN + "You have got: " + String.valueOf(playersLives.get(sender.getName())) + " live/s.");
 
-                        //This is the add - chance of the add appearing
-                        Random rand = new Random();
-                        int rand_int1 = rand.nextInt(15);
-
-                        if (rand_int1 == 0) {
-                            TextComponent message = new TextComponent("This plugin was made by ");
-                            TextComponent bewu = new TextComponent(ChatColor.AQUA + "bewu");
-                            message.addExtra(bewu);
-                            message.addExtra(ChatColor.WHITE + ". Please consider donating ");
-                            TextComponent messageLink = new TextComponent(ChatColor.BLUE + "here");
-                            messageLink.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.ko-fi.com/bewuwy"));
-                            message.addExtra(messageLink);
-                            message.addExtra(".");
-                            sender.spigot().sendMessage(message);
-                        }
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
@@ -136,16 +126,16 @@ public final class Lives extends JavaPlugin implements Listener {
                                 if (StringUtils.isNumeric(args[1])) {
                                     playersLives.put(i, Integer.valueOf(args[1]));
                                     sender.sendMessage(ChatColor.GREEN + "Reset " + i + " lives to " + args[1]);
-                                    if(getConfig().getBoolean("autoSave")) {
+                                    if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                                         saveLives();
                                     }
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset [number]");
                                 }
                             } else {
-                                playersLives.put(i, getConfig().getInt("resetLives"));
-                                sender.sendMessage(ChatColor.GREEN + "Reset lives to " + getConfig().getInt("resetLives"));
-                                if(getConfig().getBoolean("autoSave")) {
+                                playersLives.put(i, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                sender.sendMessage(ChatColor.GREEN + "Reset lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                                     saveLives();
                                 }
                             }
@@ -276,7 +266,7 @@ public final class Lives extends JavaPlugin implements Listener {
                 else if(args[0].equalsIgnoreCase("extract") || args[0].equalsIgnoreCase("ex")) {
                     if(sender instanceof Player) {
 
-                        if ((!getConfig().getBoolean("alwaysExtract") && started) || getConfig().getBoolean("alwaysExtract")) {
+                        if ((!getConfig().getConfigurationSection("generalOptions").getBoolean("alwaysExtract") && started) || getConfig().getConfigurationSection("generalOptions").getBoolean("alwaysExtract")) {
 
                             if(args.length == 1) {
                                 if (playersLives.get(sender.getName()) > 1) {
@@ -300,7 +290,7 @@ public final class Lives extends JavaPlugin implements Listener {
                             else {
                                 sender.sendMessage(ChatColor.RED + "Invalid syntax! Second argument must be a number!");
                             }
-                            if (getConfig().getBoolean("autoSave")) {
+                            if (getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                                 saveLives();
                             }
                         }
@@ -332,7 +322,7 @@ public final class Lives extends JavaPlugin implements Listener {
             playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
             player.sendMessage(ChatColor.RED + "You lost one life. You now have " + playersLives.get(player.getName()) + " live/s.");
 
-            if(getConfig().getBoolean("autoSave")) {
+            if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                 saveLives();
             }
             if (playersLives.get(player.getName()) < 1) {
@@ -354,7 +344,7 @@ public final class Lives extends JavaPlugin implements Listener {
                 player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getName()) + " live/s.");
 
                 //auto-save
-                if(getConfig().getBoolean("autoSave")) {
+                if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                     saveLives();
                 }
             }
@@ -365,8 +355,8 @@ public final class Lives extends JavaPlugin implements Listener {
     public void newPlayer(PlayerJoinEvent e) {
         //adding player if not in the database
         if(!playersLives.containsKey(e.getPlayer().getName())) {
-            playersLives.put(e.getPlayer().getName(), getConfig().getInt("onJoinLives"));
-            if(getConfig().getBoolean("autoSave")) {
+            playersLives.put(e.getPlayer().getName(), getConfig().getConfigurationSection("generalOptions").getInt("onJoinLives"));
+            if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                 saveLives();
             }
         }
@@ -385,7 +375,7 @@ public final class Lives extends JavaPlugin implements Listener {
                     player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getName()) + " live/s.");
 
                     //auto-save
-                    if (getConfig().getBoolean("autoSave")) {
+                    if (getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                         saveLives();
                     }
                 }
@@ -445,10 +435,9 @@ public final class Lives extends JavaPlugin implements Listener {
         ItemStack life = new ItemStack(Material.GHAST_TEAR);
         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
         ItemMeta lifeMeta = life.getItemMeta();
-        lifeMeta.setDisplayName(getConfig().getString("itemName"));
+        lifeMeta.setDisplayName(getConfig().getConfigurationSection("generalOptions").getString("itemName"));
         life.setItemMeta(lifeMeta);
         life.setAmount(amount);
         player.getInventory().addItem(life);
     }
-
 }

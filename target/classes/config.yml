@@ -1,9 +1,17 @@
-#Lives plugin config file
-version: 1
-autoSave: true
-autoLoad: true
-resetLives: 3
-onJoinLives: 3
-defStarted: true
-alwaysExtract: false
-itemName: Live
+#Lives plugin config file (version 2)
+
+generalOptions:
+  itemName: Live        #Changes the name of the live item
+  resetLives: 3         #Changes the default amount of lives for /l reset
+  onJoinLives: 3        #Changes how much lives a player has when joining for the first time
+  defStarted: true      #If lives counting should be on when plugins starts
+  alwaysExtract: false  #If player can extract lives when lives counting is off
+
+livesManagement:
+  autoSave: true        #If lives should be saved automatically to file
+  autoLoad: true        #If lives should be loaded from file on plugin start
+
+
+
+#If you change this variable, your config will be cleared!
+configVersion: 2
