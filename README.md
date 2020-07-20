@@ -1,7 +1,7 @@
-**Lives plugin v1.5.4**
+**Lives plugin**
 =================
 
-This is a repository of my 1.15 Minecraft plugin.
+This is a repository of my 1.15.2 Minecraft plugin.
 
 
 ## What does this plugin do? ##
@@ -26,22 +26,23 @@ You can see all commands in-game by using /lives help
 ## Config file ##
 Structure of config file:
 
-    version: 1.5.2
-    autoSave: true
-    autoLoad: true
-    resetLives: 3
-    onJoinLives: 3
-    defStarted: true
-	alwaysExtract: false
-    itemName: Live
+    #Lives plugin config file (version 2)
 
-- **autoSave** - plugin saves lives automatically to file
-- **autoLoad** - plugin loads lives automatically from file on enable
-- **resetLives** - number of lives to give on reset by default
-- **onJoinLives** - number of lives player gets when joining for the first time
-- **defStarted** - if lives counting should be on or off by default
-- **alwaysExtract** - if you can always extract lives, if this is off you only can extract them when lives counting is on
-- **itemName** - name of live item
+    generalOptions:
+      itemName: Live        #Changes the name of the live item
+      resetLives: 3         #Changes the default amount of lives for /l reset
+      onJoinLives: 3        #Changes how much lives a player has when joining for the first time
+      defStarted: true      #If lives counting should be on when plugins starts
+      alwaysExtract: false  #If player can extract lives when lives counting is off
+
+    livesManagement:
+      autoSave: true        #If lives should be saved automatically to file
+      autoLoad: true        #If lives should be loaded from file on plugin start
+
+
+
+    #If you change this variable, your config will be cleared!
+    configVersion: 2
 
 ## Permissions ##
 Plugins Permissions:
