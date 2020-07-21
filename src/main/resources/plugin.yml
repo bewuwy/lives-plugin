@@ -1,11 +1,11 @@
 name: Lives
-version: 1.5.6
+version: 1.6
 author: bewu
 main: me.bewu.lives.lives.Lives
 api-version: 1.13
 commands:
   lives:
-    description: Main command to get help use /lives help
+    description: Main command, to get help use /lives help
     aliases: [l]
 permissions:
   lives.reset:
@@ -28,4 +28,7 @@ permissions:
     default: op
   lives.moveItem:
     description: Allows you to move item.
+    default: op
+  lives.scoreboard:
+    description: Allows you to show/hide scoreboard
     default: op

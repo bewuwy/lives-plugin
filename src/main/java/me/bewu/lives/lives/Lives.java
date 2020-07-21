@@ -1,9 +1,10 @@
 package me.bewu.lives.lives;
 
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -19,8 +20,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,14 +70,14 @@ public final class Lives extends JavaPlugin implements Listener {
 
                 if(!oldVer.equals(defaults.getString("configVersion"))) {
 
-                    File oldConf = new File(getDataFolder(), "config_v" + oldVer +".yml");
+                    File oldConf = new File(getDataFolder(), "old_config_v" + oldVer +".yml");
                     file.renameTo(oldConf);
                     saveDefaultConfig();
 
                     getLogger().info("-------------------------------------------------");
                     getLogger().info("Config.yml outdated (v" + oldVer + ")");
                     getLogger().info("Updated it to the latest version and reset values.");
-                    getLogger().warning("You can see the old config in file config_v" + oldVer + ".yml!");
+                    getLogger().warning("You can see the old config in file old_config_v" + oldVer + ".yml !");
                     getLogger().info("-------------------------------------------------");
 
                 }
@@ -85,12 +86,16 @@ public final class Lives extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
 
+
+
     }
 
     Map<String, Integer> playersLives = new HashMap<>();
     boolean started = getConfig().getConfigurationSection("generalOptions").getBoolean("defStarted");
     private File customConfigFile;
     private FileConfiguration customConfig;
+    boolean scoreboardShown = getConfig().getConfigurationSection("scoreboard").getBoolean("defShown");
+
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -140,21 +145,28 @@ public final class Lives extends JavaPlugin implements Listener {
                                 }
                             }
                         }
+
+                        updateScores();
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
                 //command /lives get
                 else if (args[0].equalsIgnoreCase("get")) {
-                    if (sender.hasPermission("lives.get")) {
+                    if(args.length > 1) {
+                        if (sender.hasPermission("lives.get")) {
 
-                        if (playersLives.containsKey(args[1])) {
-                            sender.sendMessage(args[1] + " has got " + String.valueOf(playersLives.get(args[1])) + " live/s.");
+                            if (playersLives.containsKey(args[1])) {
+                                sender.sendMessage(args[1] + " has got " + String.valueOf(playersLives.get(args[1])) + " live/s.");
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "This player is not in the database. If this player is online and you see this error, use /lives reset");
+                            }
                         } else {
-                            sender.sendMessage(ChatColor.RED + "This player is not in the database. If this player is online and you see this error, use /lives reset");
+                            sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                         }
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
+                    }
+                    else {
+                        sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
                     }
                 }
                 //command /lives give
@@ -260,7 +272,23 @@ public final class Lives extends JavaPlugin implements Listener {
                 }
                 //command /lives help
                 else if (args[0].equalsIgnoreCase("help")) {
-                    sender.sendMessage("Alias: /l \n /lives - tells you how many lives you have \n /lives extract [n] (Alias: /l ex [n]) - extracts n of your lives to an item (def 1) \n /lives get [Player] - tells you how many lives the player has \n /lives reset [n] - resets lives counter for everyone to n lives (def 3) \n /lives give [n] - gives you n live items (def 1) \n /lives [start | stop] - stops/starts lives counting \n /lives status - tells the status of lives counting \n /lives reset_config - resets config to default values \n /lives [save | load] - saves/loads lives to/from file");
+
+                    sender.sendMessage(ChatColor.YELLOW + " Default commands:\n" + ChatColor.RESET +
+                            " - /lives (Alias: /l) - tells you how many lives you have\n" +
+                            " - /lives get [Player] - tells you how many lives the player has\n" +
+                            " - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)\n" +
+                            " - /lives status - tells if lives counting is on or off\n" +
+                            " - /lives help (admin) - shows list of commands in-game (def without admin commands)");
+
+                    if(args.length > 1 && args[1].equalsIgnoreCase("admin")) {
+                        sender.sendMessage(ChatColor.YELLOW + "\n Administrator commands:\n" + ChatColor.RESET +
+                                " - /lives reset (n) - resets lives counter for everyone to n lives (def 3)\n" +
+                                " - /lives give (n) - gives you n live items (def 1)\n" +
+                                " - /lives [start | stop] - stops/starts lives counting\n" +
+                                " - /lives [save | load] - saves/loads lives to/from file\n" +
+                                " - /lives scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard\n" +
+                                " - /lives reset_config - resets config to default values");
+                    }
                 }
                 //command /lives extract Alias: /l ex
                 else if(args[0].equalsIgnoreCase("extract") || args[0].equalsIgnoreCase("ex")) {
@@ -274,6 +302,9 @@ public final class Lives extends JavaPlugin implements Listener {
 
                                     giveItem((Player) sender, 1);
                                     sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+
+                                    updateScores();
+
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "You can't extract lives when you have only one life.");
                                 }
@@ -283,6 +314,9 @@ public final class Lives extends JavaPlugin implements Listener {
 
                                     giveItem((Player) sender, Integer.parseInt(args[1]));
                                     sender.sendMessage(ChatColor.GREEN + "You have extracted " + args[1] +  " lives! You now have " + playersLives.get(sender.getName()) + " live/s.");
+
+                                    updateScores();
+
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "You don't have enough lives!");
                                 }
@@ -305,6 +339,39 @@ public final class Lives extends JavaPlugin implements Listener {
                 else if(args[0].equalsIgnoreCase("version")) {
                     sender.sendMessage("The plugin version is " + getDescription().getVersion());
                 }
+                //command /l scoreboard
+                else if(args[0].equalsIgnoreCase("scoreboard") || args[0].equalsIgnoreCase("score")) {
+                    if(sender.hasPermission("lives.scoreboard")) {
+
+                        if (args.length > 1) {
+
+                            if (args[1].equalsIgnoreCase("show")) {
+                                sender.sendMessage(ChatColor.GREEN + "Showing the scoreboard");
+                                scoreboardShown = true;
+
+                                updateScores();
+
+                            } else if (args[1].equalsIgnoreCase("hide")) {
+                                sender.sendMessage(ChatColor.RED + "Hidden the scoreboard");
+                                scoreboardShown = false;
+
+                                for (Player online : Bukkit.getOnlinePlayers()) {
+                                    online.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+                                }
+
+                            } else if (args[1].equalsIgnoreCase("update")) {
+                                updateScores();
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "Wrong argument! Use: /lives help to see usage");
+                            }
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
+                        }
+                    }
+                    else {
+                        sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
+                    }
+                }
                 //wrong command
                 else {
                     sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives help to see commands");
@@ -321,6 +388,8 @@ public final class Lives extends JavaPlugin implements Listener {
             Player player = e.getEntity();
             playersLives.put(player.getName(), playersLives.get(player.getName()) - 1);
             player.sendMessage(ChatColor.RED + "You lost one life. You now have " + playersLives.get(player.getName()) + " live/s.");
+
+            updateScores();
 
             if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                 saveLives();
@@ -343,6 +412,8 @@ public final class Lives extends JavaPlugin implements Listener {
                 playersLives.put(player.getName(), playersLives.get(player.getName()) + 1);
                 player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getName()) + " live/s.");
 
+                updateScores();
+
                 //auto-save
                 if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
                     saveLives();
@@ -360,6 +431,10 @@ public final class Lives extends JavaPlugin implements Listener {
                 saveLives();
             }
         }
+
+        if(scoreboardShown) {
+            updateScores();
+        }
     }
 
     @EventHandler
@@ -373,6 +448,8 @@ public final class Lives extends JavaPlugin implements Listener {
                     playersLives.put(player.getName(), playersLives.get(player.getName()) + e.getCurrentItem().getAmount());
                     e.getCurrentItem().setAmount(0);
                     player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getName()) + " live/s.");
+
+                    updateScores();
 
                     //auto-save
                     if (getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
@@ -439,5 +516,31 @@ public final class Lives extends JavaPlugin implements Listener {
         life.setItemMeta(lifeMeta);
         life.setAmount(amount);
         player.getInventory().addItem(life);
+    }
+
+    public void updateScores() {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        Scoreboard livesBoard = manager.getNewScoreboard();
+        Objective objective = livesBoard.registerNewObjective("lives", "dummy", ChatColor.RED + getConfig().getConfigurationSection("scoreboard").getString("name"));
+
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            online.setScoreboard(livesBoard);
+
+            objective.getScore(online.getName()).setScore(playersLives.get(online.getName()));
+        }
+
+        if(getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("TAB")) {
+            objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+        }
+        else if(getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("SIDE")) {
+            objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        }
+        else if(getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("UNDER_NAME")) {
+            objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
+        }
+        else {
+            getLogger().warning("The option \"type\" in config file under section \"scoreboard\" was set to an incorrect value! Using TAB by default!");
+            objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+        }
     }
 }

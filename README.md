@@ -8,20 +8,23 @@ This is a repository of my 1.15.2 Minecraft plugin.
 This plugin adds every player lives. When someone looses his last live, his gamemode is changed to spectator until the lives counter is reset. You loose a live if you die and you can get it by using a certain item.
 
 ## Commands ##
-You can see all commands in-game by using /lives help
+You can see all commands in-game by using /lives help admin
 
 **Default commands:**
-- **/lives** - tells you how many lives you have
-- **/lives extract [n]** - extracts one of your lives to an item (Alias: /lives ex [n])
-- **/lives status** - tells the status of lives counting
+- **/lives** (Alias: /l) - tells you how many lives you have
 - **/lives get [Player]** - tells you how many lives the player has
+- **/lives extract (n)** (Alias: /l ex) - extracts n of your lives to an item (def 1)
+- **/lives status** - tells if lives counting is on or off
+- **/lives help (admin)** - shows list of commands in-game (def without admin commands)
+
 
 **Administrator commands:**
-- **/lives reset [n]** - resets lives counter for everyone to n lives (def 3)
-- **/lives give [n]** - gives you n live items (def 1)
+- **/lives reset (n)** - resets lives counter for everyone to n lives (def 3)
+- **/lives give (n)** - gives you n live items (def 1)
 - **/lives [start | stop]** - stops/starts lives counting
-- **/lives reset_config** - resets config to default values
 - **/lives [save | load]** - saves/loads lives to/from file
+- **/lives scoreboard [show | hide]** (Alias: /l score) - shows/hides the lives scoreboard
+- **/lives reset_config** - resets config to default values
 
 ## Config file ##
 Structure of config file:
@@ -39,32 +42,41 @@ Structure of config file:
       autoSave: true        #If lives should be saved automatically to file
       autoLoad: true        #If lives should be loaded from file on plugin start
 
+    scoreboard:
+      defShown: false       #If scoreboard should be shown when plugins starts
+      type: TAB             #Type of scoreboard (supported: TAB, SIDE, UNDER_NAME)
+      name: Lives           #Scoreboard name, only shown when scoreboard type is set to SIDE
+
 
 
     #If you change this variable, your config will be cleared!
-    configVersion: 2
+    configVersion: 2.1
 
 ## Permissions ##
 Plugins Permissions:
 
-  - **lives.reset**:
-    Allows you to reset the lives counter
-    Default: op
+
   - **lives.get**:
     Allows you to see other peoples lives.
     Default: everyone
+  - **lives.reset**:
+    Allows you to reset the lives counter
+    Default: op
   - **lives.give**:
     Allows you to give you the live item.
     Default: op
   - **lives.control**:
     Allows you to turn counting lives on and off.
     Default: op
-  -**lives.config.reset**:
-    Allows you to reset config file from command.
-    Default: op
-  -**lives.save**:
+  - **lives.save**:
     Allows you to save/load lives to/from file.
     Default: op
-  -**lives.move**:
+  - **lives.move**:
     Allows you to move the live item.
+    Default: op
+  - **lives.scoreboard**:
+    Allows you to show/hide scoreboard.
+    Default: op
+  - **lives.config.reset**:
+    Allows you to reset config file from command.
     Default: op

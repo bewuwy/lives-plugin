@@ -1,0 +1,14 @@
+ Default commands:
+ - /lives (Alias: /l) - tells you how many lives you have
+ - /lives get [Player] - tells you how many lives the player has
+ - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)
+ - /lives status - tells if lives counting is on or off
+ - /lives help (admin) - shows list of commands in-game (def without admin commands)
+
+ Administrator commands:
+ - /lives reset (n) - resets lives counter for everyone to n lives (def 3)
+ - /lives give (n) - gives you n live items (def 1)
+ - /lives [start | stop] - stops/starts lives counting
+ - /lives [save | load] - saves/loads lives to/from file
+ - /lives scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard
+ - /lives reset_config - resets config to default values
