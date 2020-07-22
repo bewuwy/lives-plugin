@@ -21,6 +21,9 @@ You can see all commands in-game by using /lives help admin
 **Administrator commands:**
 - **/lives reset (n)** - resets lives counter for everyone to n lives (def 3)
 - **/lives give (n)** - gives you n live items (def 1)
+- **/lives set [Player] [n]** - sets players lives to n
+- **/lives add [Player] [n]** - adds player n lives
+- **/lives addeveryone [n]** (Alias: /l addev) - adds everyone n lives
 - **/lives [start | stop]** - stops/starts lives counting
 - **/lives [save | load]** - saves/loads lives to/from file
 - **/lives scoreboard [show | hide]** (Alias: /l score) - shows/hides the lives scoreboard
@@ -40,6 +43,7 @@ Structure of config file:
 
     livesManagement:
       autoSave: true        #If lives should be saved automatically to file
+      saveInterval: 30      #How often autosave can run (in seconds!)
       autoLoad: true        #If lives should be loaded from file on plugin start
 
     scoreboard:
@@ -47,10 +51,14 @@ Structure of config file:
       type: TAB             #Type of scoreboard (supported: TAB, SIDE, UNDER_NAME)
       name: Lives           #Scoreboard name, only shown when scoreboard type is set to SIDE
 
+    penalty:
+      type: GM3             #Penalty for loosing the last life (GM3, BAN, TEMPBAN)
+      tempbanTime: 60       #Tempban time (in minutes!)
+      banMessage: You lost your last life!
 
 
     #If you change this variable, your config will be cleared!
-    configVersion: 2.1
+    configVersion: 2.2
 
 ## Permissions ##
 Plugins Permissions:
@@ -59,8 +67,8 @@ Plugins Permissions:
   - **lives.get**:
     Allows you to see other peoples lives.
     Default: everyone
-  - **lives.reset**:
-    Allows you to reset the lives counter
+  - **lives.set**:
+    Allows you to reset, set and add players lives.
     Default: op
   - **lives.give**:
     Allows you to give you the live item.

@@ -9,6 +9,7 @@ generalOptions:
 
 livesManagement:
   autoSave: true        #If lives should be saved automatically to file
+  saveInterval: 30      #How often autosave can run (in seconds!)
   autoLoad: true        #If lives should be loaded from file on plugin start
 
 scoreboard:
@@ -16,7 +17,10 @@ scoreboard:
   type: TAB             #Type of scoreboard (supported: TAB, SIDE, UNDER_NAME)
   name: Lives           #Scoreboard name, only shown when scoreboard type is set to SIDE
 
-
+penalty:
+  type: GM3             #Penalty for loosing the last life (GM3, BAN, TEMPBAN)
+  tempbanTime: 60       #Tempban time (in minutes!)
+  banMessage: You lost your last life!
 
 #If you change this variable, your config will be cleared!
-configVersion: 2.1
+configVersion: 2.2

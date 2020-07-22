@@ -8,6 +8,9 @@
  Administrator commands:
  - /lives reset (n) - resets lives counter for everyone to n lives (def 3)
  - /lives give (n) - gives you n live items (def 1)
+ - /lives set [Player] [n] - sets players lives to n
+ - /lives add [Player] [n] - adds player n lives
+ - /lives addeveryone [n] (Alias: /l addev) - adds everyone n lives
  - /lives [start | stop] - stops/starts lives counting
  - /lives [save | load] - saves/loads lives to/from file
  - /lives scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard
