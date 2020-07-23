@@ -1,5 +1,5 @@
 name: Lives
-version: 1.7
+version: 1.8
 author: bewu
 main: me.bewu.lives.lives.Lives
 api-version: 1.13
@@ -9,7 +9,7 @@ commands:
     aliases: [l]
 permissions:
   lives.set:
-    description: Allows you to reset, set and add players lives
+    description: Allows you to reset, set and add players lives.
     default: op
   lives.get:
     description: Allows you to see other peoples lives.

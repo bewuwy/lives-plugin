@@ -13,8 +13,8 @@ livesManagement:
   autoLoad: true        #If lives should be loaded from file on plugin start
 
 scoreboard:
-  defShown: false       #If scoreboard should be shown when plugins starts
-  type: TAB             #Type of scoreboard (supported: TAB, SIDE, UNDER_NAME)
+  defShown: true       #If scoreboard should be shown when plugins starts
+  type: TAB             #Type of scoreboard (TAB, SIDE, UNDER_NAME)
   name: Lives           #Scoreboard name, only shown when scoreboard type is set to SIDE
 
 penalty:
@@ -22,5 +22,9 @@ penalty:
   tempbanTime: 60       #Tempban time (in minutes!)
   banMessage: You lost your last life!
 
+reviving:
+  alloved: false        #If player can revive players with 0 lives
+  cost: 3               #Cost (in lives) of revival
+
 #If you change this variable, your config will be cleared!
-configVersion: 2.2
+configVersion: 2.3
