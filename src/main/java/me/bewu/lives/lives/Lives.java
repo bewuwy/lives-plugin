@@ -446,34 +446,44 @@ public final class Lives extends JavaPlugin implements Listener {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
-                // /lives revive [Player] (/l rev)
-                else if (args[0].equalsIgnoreCase("revive") || args[0].equalsIgnoreCase("rev")) {
-                    if (args.length > 1) {
-                        UUID id = null;
-                        try {
-                            id = UUIDFetcher.getUUIDOf(args[1]);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                // /lives revive [Player] (/l rev) and /l admin_revive (/l arev)
+                else if (args[0].equalsIgnoreCase("revive") || args[0].equalsIgnoreCase("rev")  || args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev")) {
+                    Boolean revive = getConfig().getConfigurationSection("reviving").getBoolean("allowed");
+                    Boolean admin = false;
+                    if (args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev") || !(sender instanceof Player)) {
+                        if (sender.hasPermission("lives.revive.admin")) {
+                            admin = true;
                         }
+                    }
+                    if (revive || sender.hasPermission("lives.revive")) {
+                        if (args.length > 1) {
+                            UUID id = null;
+                            try {
+                                id = UUIDFetcher.getUUIDOf(args[1]);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            if (id != null) {
+                                autoSave();
+                                if (!sender.getName().equalsIgnoreCase(args[1]) || admin) {
 
-                        if (id != null) {
-                            autoSave();
-                            if (sender instanceof Player) {
-                                if (sender.getName().equalsIgnoreCase(args[1])) {
-                                    sender.sendMessage(ChatColor.RED + "You can't revive yourself!");
-                                }
-                                else {
                                     Integer cost = getConfig().getConfigurationSection("reviving").getInt("cost");
-                                    if (playersLives.get(((Player) sender).getUniqueId()) > cost) {
+                                    if (playersLives.get(((Player) sender).getUniqueId()) > cost || admin) {
                                         String pen = getConfig().getConfigurationSection("penalty").getString("type");
 
                                         if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
                                             if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]) != null) {
                                                 getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
 
-                                                playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                if(!admin) {
+                                                    playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
+                                                }
+                                                else {
+                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
+                                                }
+
                                                 playersLives.put(id, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
                                             } else {
                                                 sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
                                             }
@@ -481,9 +491,15 @@ public final class Lives extends JavaPlugin implements Listener {
                                             if (getServer().getPlayer(args[1]) != null) {
                                                 getServer().getPlayer(args[1]).setGameMode(GameMode.SURVIVAL);
 
-                                                playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                if(!admin) {
+                                                    playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
+                                                }
+                                                else {
+                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
+                                                }
+
                                                 playersLives.put(id, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
                                             } else {
                                                 sender.sendMessage(ChatColor.RED + "This player is not online!");
                                             }
@@ -493,34 +509,18 @@ public final class Lives extends JavaPlugin implements Listener {
                                     } else {
                                         sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (" + (cost + 1) + " required)");
                                     }
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "You can't revive yourself!");
                                 }
                             } else {
-                                String pen = getConfig().getConfigurationSection("penalty").getString("type");
-                                if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
-                                    if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]) != null) {
-                                        getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
-                                        playersLives.put(id, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                        sender.sendMessage("Revived " + args[1] + "!");
-                                    } else {
-                                        sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
-                                    }
-                                } else if (pen.equalsIgnoreCase("GM3")) {
-                                    if (getServer().getPlayer(args[1]) != null) {
-                                        getServer().getPlayer(args[1]).setGameMode(GameMode.SURVIVAL);
-                                        playersLives.put(id, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                        sender.sendMessage("Revived " + args[1] + "!");
-                                    } else {
-                                        sender.sendMessage(ChatColor.RED + "This player is not online!");
-                                    }
-                                }
+                                sender.sendMessage(ChatColor.RED + "Player doesn't exist! Player names are case sensitive!");
                             }
-                        }
-                        else {
-                            sender.sendMessage(ChatColor.RED + "Player doesn't exist! Player names are case sensitive!");
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! See /lives help for usage.");
                         }
                     }
                     else {
-                        sender.sendMessage(ChatColor.RED + "Too few arguments! See /lives help for usage.");
+                        sender.sendMessage(ChatColor.RED + "You don't have permissions to use that command!");
                     }
                 }
                 //wrong command
@@ -722,5 +722,9 @@ public final class Lives extends JavaPlugin implements Listener {
         }
 
         updateScores();
+    }
+
+    public void revive(Player player, Boolean admin) {
+
     }
 }

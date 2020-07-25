@@ -32,3 +32,9 @@ permissions:
   lives.scoreboard:
     description: Allows you to show/hide scoreboard
     default: op
+  lives.revive:
+    description: Allows you to revive people even if it's turned off.
+    default: op
+  lives.revive.admin:
+    description: Allows you to revive people "for free"
+    default: op
