@@ -1,4 +1,4 @@
-package me.bewu.lives.lives;
+package me.bewu.lives;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public final class Lives extends JavaPlugin implements Listener {
+public final class Main extends JavaPlugin implements Listener {
 
     boolean started = getConfig().getConfigurationSection("generalOptions").getBoolean("defStarted");
     boolean scoreboardShown = getConfig().getConfigurationSection("scoreboard").getBoolean("defShown");

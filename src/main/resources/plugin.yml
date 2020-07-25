@@ -1,7 +1,7 @@
 name: Lives
 version: 1.8.1
 author: bewu
-main: me.bewu.lives.lives.Lives
+main: me.bewu.lives.Main
 api-version: 1.13
 commands:
   lives:

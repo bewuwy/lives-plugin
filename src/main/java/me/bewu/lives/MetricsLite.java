@@ -1,4 +1,4 @@
-package me.bewu.lives.lives;
+package me.bewu.lives;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
