@@ -278,6 +278,7 @@ public final class Lives extends JavaPlugin implements Listener {
                             " - /lives (Alias: /l) - tells you how many lives you have\n" +
                             " - /lives get [Player] - tells you how many lives the player has\n" +
                             " - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)\n" +
+                            " - /lives revive [Player] (Alias: /l rev) - revives a player for some lives\n" +
                             " - /lives status - tells if lives counting is on or off\n" +
                             " - /lives help (admin) - shows list of commands in-game (def without admin commands)");
 
@@ -288,6 +289,7 @@ public final class Lives extends JavaPlugin implements Listener {
                                 " - /lives set [Player] [n] - sets players lives to n\n" +
                                 " - /lives add [Player] [n] - adds player n lives\n" +
                                 " - /lives addeveryone [n] (Alias: /l addev) - adds everyone n lives\n" +
+                                " - /lives admin_revive [Player] (Alias: /l arev) - revives a player \"for free\"\n" +
                                 " - /lives [start | stop] - stops/starts lives counting\n" +
                                 " - /lives [save | load] - saves/loads lives to/from file\n" +
                                 " - /lives scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard\n" +
@@ -467,15 +469,19 @@ public final class Lives extends JavaPlugin implements Listener {
                                     if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
                                         if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]) != null) {
 
-                                            if(!admin) {
-                                                playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
+                                            if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]).getReason().equalsIgnoreCase(getConfig().getConfigurationSection("penalty").getString("banMessage"))) {
+                                                if (!admin) {
+                                                    playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
+                                                } else {
+                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
+                                                }
+
+                                                getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
                                             }
                                             else {
-                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
+                                                sender.sendMessage(ChatColor.RED + "This player wasn't banned for loosing his last life! If you believe this is a mistake, please contact the server administrators.");
                                             }
-
-                                            getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
                                         } else {
                                             sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
                                         }

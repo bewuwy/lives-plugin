@@ -2,6 +2,7 @@
  - /lives (Alias: /l) - tells you how many lives you have
  - /lives get [Player] - tells you how many lives the player has
  - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)
+ - /lives revive [Player] (Alias: /l rev) - revives a player for some lives
  - /lives status - tells if lives counting is on or off
  - /lives help (admin) - shows list of commands in-game (def without admin commands)
 
@@ -11,6 +12,7 @@
  - /lives set [Player] [n] - sets players lives to n
  - /lives add [Player] [n] - adds player n lives
  - /lives addeveryone [n] (Alias: /l addev) - adds everyone n lives
+ - /lives admin_revive [Player] (Alias: /l arev) - revives a player "for free"
  - /lives [start | stop] - stops/starts lives counting
  - /lives [save | load] - saves/loads lives to/from file
  - /lives scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard
