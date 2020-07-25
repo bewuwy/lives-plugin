@@ -457,54 +457,45 @@ public final class Lives extends JavaPlugin implements Listener {
                     }
                     if (revive || sender.hasPermission("lives.revive")) {
                         if (args.length > 1) {
-                            UUID id = null;
-                            try {
-                                id = UUIDFetcher.getUUIDOf(args[1]);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            if (id != null) {
-                                autoSave();
-                                if (!sender.getName().equalsIgnoreCase(args[1]) || admin) {
+                            autoSave();
+                            if (!sender.getName().equalsIgnoreCase(args[1]) || admin) {
 
-                                    Integer cost = getConfig().getConfigurationSection("reviving").getInt("cost");
-                                    if (playersLives.get(((Player) sender).getUniqueId()) > cost || admin) {
-                                        String pen = getConfig().getConfigurationSection("penalty").getString("type");
+                                Integer cost = getConfig().getConfigurationSection("reviving").getInt("cost");
+                                if (admin || playersLives.get(((Player) sender).getUniqueId()) > cost) {
+                                    String pen = getConfig().getConfigurationSection("penalty").getString("type");
 
-                                        if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
-                                            if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]) != null) {
-                                                getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
+                                    if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
+                                        if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]) != null) {
 
-                                                if(!admin) {
-                                                    playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
-                                                }
-                                                else {
-                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
-                                                }
-
-                                                playersLives.put(id, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                            } else {
-                                                sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
+                                            if(!admin) {
+                                                playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
                                             }
-                                        } else if (pen.equalsIgnoreCase("GM3")) {
-                                            if (getServer().getPlayer(args[1]) != null) {
-                                                getServer().getPlayer(args[1]).setGameMode(GameMode.SURVIVAL);
-
-                                                if(!admin) {
-                                                    playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
-                                                }
-                                                else {
-                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
-                                                }
-
-                                                playersLives.put(id, getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                            } else {
-                                                sender.sendMessage(ChatColor.RED + "This player is not online!");
+                                            else {
+                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
                                             }
+
+                                            getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
+                                        } else {
+                                            sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
                                         }
+                                    } else if (pen.equalsIgnoreCase("GM3")) {
+                                        if (getServer().getPlayer(args[1]) != null) {
+                                            getServer().getPlayer(args[1]).setGameMode(GameMode.SURVIVAL);
 
+                                            if(!admin) {
+                                                playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
+                                            }
+                                            else {
+                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
+                                            }
+
+                                            playersLives.put(getServer().getPlayer(args[1]).getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
+                                        } else {
+                                            sender.sendMessage(ChatColor.RED + "This player is not online!");
+                                        }
+                                    }
                                         autoSave();
                                     } else {
                                         sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (" + (cost + 1) + " required)");
@@ -512,9 +503,6 @@ public final class Lives extends JavaPlugin implements Listener {
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "You can't revive yourself!");
                                 }
-                            } else {
-                                sender.sendMessage(ChatColor.RED + "Player doesn't exist! Player names are case sensitive!");
-                            }
                         } else {
                             sender.sendMessage(ChatColor.RED + "Too few arguments! See /lives help for usage.");
                         }
@@ -582,20 +570,14 @@ public final class Lives extends JavaPlugin implements Listener {
         //adding player if not in the database
         if(!playersLives.containsKey(e.getPlayer().getUniqueId())) {
             playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("onJoinLives"));
-
             autoSave();
         }
-
-        if(scoreboardShown) {
-            updateScores();
-        }
-
-        if(playersLives.get(e.getPlayer().getUniqueId()) < 1) {
+        else if(playersLives.get(e.getPlayer().getUniqueId()) < 1) {
             if(getConfig().getConfigurationSection("penalty").getString("type").equalsIgnoreCase("GM3")) {
                 e.getPlayer().setGameMode(GameMode.SPECTATOR);
             }
             else {
-                e.getPlayer().sendMessage(ChatColor.GREEN + "You have been unbanned, so your lives were reset!");
+                e.getPlayer().sendMessage(ChatColor.GREEN + "You have been revived!");
                 playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
 
                 if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
@@ -603,6 +585,9 @@ public final class Lives extends JavaPlugin implements Listener {
                 }
                 updateScores();
             }
+        }
+        if(scoreboardShown) {
+            updateScores();
         }
     }
 
