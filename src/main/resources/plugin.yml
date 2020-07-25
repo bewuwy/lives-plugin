@@ -38,3 +38,5 @@ permissions:
   lives.revive.admin:
     description: Allows you to revive people "for free"
     default: op
+  lives.reset:
+    description: Allows you to reset lives for everyone and revive everyone

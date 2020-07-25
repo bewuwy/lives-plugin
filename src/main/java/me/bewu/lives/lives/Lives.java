@@ -28,21 +28,29 @@ import java.util.*;
 
 public final class Lives extends JavaPlugin implements Listener {
 
+    boolean started = getConfig().getConfigurationSection("generalOptions").getBoolean("defStarted");
+    boolean scoreboardShown = getConfig().getConfigurationSection("scoreboard").getBoolean("defShown");
+    Map<UUID, Integer> playersLives = new HashMap<>();
+    private File customConfigFile;
+    private FileConfiguration customConfig;
+    long lastSave;
+
     @Override
     public void onEnable() {
         // Plugin startup logic
+        Bukkit.getPluginManager().registerEvents(this, this);
 
         //bstats
         int pluginId = 8287;
         MetricsLite metrics = new MetricsLite(this, pluginId);
 
-        lastSave = System.currentTimeMillis();
-
         //ad
         getLogger().info("-------------------------------------------------");
-        getLogger().info("This plugin was made by bewu.");
+        getLogger().info("Main plugin was made by bewu.");
         getLogger().info("Please consider donating on https://ko-fi.com/bewuwy");
         getLogger().info("-------------------------------------------------");
+
+        lastSave = System.currentTimeMillis();
 
         //Creates lives.yml if not existing
         createCustomConfig();
@@ -50,8 +58,6 @@ public final class Lives extends JavaPlugin implements Listener {
         if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoLoad")) {
             loadLives();
         }
-
-        Bukkit.getPluginManager().registerEvents(this, this);
 
         try {
             if (!getDataFolder().exists()) {
@@ -77,11 +83,11 @@ public final class Lives extends JavaPlugin implements Listener {
                     file.renameTo(oldConf);
                     saveDefaultConfig();
 
-                    getLogger().info("-------------------------------------------------");
-                    getLogger().info("Config.yml outdated (v" + oldVer + ")");
-                    getLogger().info("Updated it to the latest version and reset values.");
-                    getLogger().warning("You can see the old config in file old_config_v" + oldVer + ".yml !");
-                    getLogger().info("-------------------------------------------------");
+                    getLogger().warning("-------------------------------------------------");
+                    getLogger().warning("[Main]: Config.yml outdated (v" + oldVer + ")");
+                    getLogger().warning("[Main]: Updated it to the latest version and reset values.");
+                    getLogger().warning("[Main]: You can see the old config in file old_config_v" + oldVer + ".yml !");
+                    getLogger().warning("-------------------------------------------------");
 
                 }
             }
@@ -91,36 +97,25 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     @Override
-    public void onDisable() {
-        autoSave();
-    }
-
-    Map<UUID, Integer> playersLives = new HashMap<>();
-    boolean started = getConfig().getConfigurationSection("generalOptions").getBoolean("defStarted");
-    private File customConfigFile;
-    private FileConfiguration customConfig;
-    boolean scoreboardShown = getConfig().getConfigurationSection("scoreboard").getBoolean("defShown");
-    long lastSave;
+    public void onDisable() { autoSave(); }
 
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
             if (command.getName().equalsIgnoreCase("lives") || command.getName().equalsIgnoreCase("l")) {
-                //command /lives
+                //command /lives (/l)
                 if (args.length == 0) {
                     if(sender instanceof Player) {
-
                         sender.sendMessage(ChatColor.GREEN + "You have got: " + playersLives.get(((Player) sender).getUniqueId()) + " live/s.");
-
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
-
                 }
-                //command /lives reset
+
+                //command /lives reset [n]
                 else if (args[0].equalsIgnoreCase("reset")) {
-                    if (sender.hasPermission("lives.set")) {
+                    if (sender.hasPermission("lives.reset")) {
                         for (Player i : Bukkit.getOnlinePlayers()) {
                             if (i.getGameMode() == GameMode.SPECTATOR) {
                                 if (i.getBedSpawnLocation() != null) {
@@ -140,13 +135,13 @@ public final class Lives extends JavaPlugin implements Listener {
                                 sender.sendMessage(ChatColor.GREEN + "Reset" + i.getName() + "lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
                             }
                         }
-
                         autoSave();
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
-                //command /lives get
+
+                //command /lives get [Player]
                 else if (args[0].equalsIgnoreCase("get")) {
                     if(args.length > 1) {
                         if (sender.hasPermission("lives.get")) {
@@ -154,27 +149,24 @@ public final class Lives extends JavaPlugin implements Listener {
                                 UUID id = getServer().getPlayer(args[1]).getUniqueId();
                                 if (playersLives.containsKey(id)) {
                                     sender.sendMessage(args[1] + " has got " + playersLives.get(id) + " live/s.");
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "This player has not joined the server!");
                                 }
-                                else {
-                                    sender.sendMessage(ChatColor.RED + "This player is not in the database. If this player is online and you see this error, use /lives reset");
-                                }
-                            }
-                            else {
+                            } else {
                                 sender.sendMessage(ChatColor.RED + "Player offline!");
                             }
                         } else {
                             sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                         }
-                    }
-                    else {
-                        sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives get [Player]");
                     }
                 }
-                //command /lives give
+
+                //command /lives give [n] (From console: /l give [Player] [n])
                 else if (args[0].equalsIgnoreCase("give")) {
                     if(sender instanceof Player) {
                         if (sender.hasPermission("lives.give")) {
-
                             if (args.length > 1) {
                                 if (StringUtils.isNumeric(args[1])) {
                                     giveItem((Player) sender, Integer.parseInt(args[1]));
@@ -189,60 +181,65 @@ public final class Lives extends JavaPlugin implements Listener {
                         }
                     } else {
                         if(args.length > 1) {
-                            if(getServer().getPlayerExact(args[1]) != null) {
+                            if(getServer().getPlayer(args[1]) != null) {
                                 if (args.length > 2) {
-                                    if(StringUtils.isNumeric(args[2])) {
-                                        giveItem(getServer().getPlayerExact(args[1]), Integer.parseInt(args[2]));
-                                        sender.sendMessage("Gave 1 live item to " + args[1]);
+                                    if (StringUtils.isNumeric(args[2])) {
+                                        giveItem(getServer().getPlayer(args[1]), Integer.parseInt(args[2]));
+                                        sender.sendMessage("Gave " + args[2] + " live items to " + args[1]);
                                     } else {
                                         sender.sendMessage("Invalid syntax! From console use: /lives give [Player] [number]");
                                     }
-                                }
-                                else {
-                                    giveItem(getServer().getPlayerExact(args[1]), 1);
+                                } else {
+                                    giveItem(getServer().getPlayer(args[1]), 1);
                                     sender.sendMessage("Gave 1 live item to " + args[1]);
                                 }
                             } else  {
                                 sender.sendMessage("Player must be online!");
                             }
-                        }
-                        else {
-                            sender.sendMessage("Invalid syntax! From console use: /lives give [Player] {number}");
+                        } else {
+                            sender.sendMessage("Invalid syntax! From console use: /lives give [Player] (number)");
                         }
                     }
                 }
-                //command /lives stop
+
+                //command /lives stop (quiet)
                 else if (args[0].equalsIgnoreCase("stop")) {
                     if (sender.hasPermission("lives.control")) {
-
-                        sender.sendMessage(ChatColor.RED + "Stopped counting lives.");
+                        if (args.length > 1 && args[1].equalsIgnoreCase("quiet")) {
+                            getServer().broadcastMessage(ChatColor.RED + "Stopped counting lives!");
+                        }
+                        else { sender.sendMessage(ChatColor.RED + "Stopped counting lives!"); }
                         started = false;
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
-                //command /lives start
+
+                //command /lives start (quiet)
                 else if (args[0].equalsIgnoreCase("start")) {
                     if (sender.hasPermission("lives.control")) {
-
-                        sender.sendMessage(ChatColor.GREEN + "Started counting lives.");
+                        if (args.length > 1 && args[1].equalsIgnoreCase("quiet")) {
+                            getServer().broadcastMessage(ChatColor.GREEN + "Started counting lives!");
+                        }
+                        else { sender.sendMessage(ChatColor.GREEN + "Started counting lives!"); }
                         started = true;
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 //command /lives status
                 else if (args[0].equalsIgnoreCase("status")) {
                     if (started) {
-                        sender.sendMessage(ChatColor.GREEN + "Lives counting is on.");
+                        sender.sendMessage(ChatColor.GREEN + "Main counting is on.");
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Lives counting is off.");
+                        sender.sendMessage(ChatColor.RED + "Main counting is off.");
                     }
                 }
+
                 //command /lives reset_config
                 else if (args[0].equalsIgnoreCase("reset_config")) {
                     if (sender.hasPermission("lives.config.reset")) {
-
                         File file = new File(getDataFolder(), "config.yml");
                         file.delete();
                         saveDefaultConfig();
@@ -251,6 +248,7 @@ public final class Lives extends JavaPlugin implements Listener {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 //command /lives save
                 else if (args[0].equalsIgnoreCase("save")) {
                     if (sender.hasPermission("lives.save")) {
@@ -261,6 +259,7 @@ public final class Lives extends JavaPlugin implements Listener {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 //command /lives load
                 else if (args[0].equalsIgnoreCase("load")) {
                     if (sender.hasPermission("lives.save")) {
@@ -271,7 +270,8 @@ public final class Lives extends JavaPlugin implements Listener {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
-                //command /lives help
+
+                //command /lives help (admin)
                 else if (args[0].equalsIgnoreCase("help")) {
 
                     sender.sendMessage(ChatColor.YELLOW + " Default commands:\n" + ChatColor.RESET +
@@ -296,16 +296,16 @@ public final class Lives extends JavaPlugin implements Listener {
                                 " - /lives reset_config - resets config to default values");
                     }
                 }
-                //command /lives extract Alias: /l ex
+
+                //command /lives extract (number) Alias: /l ex
                 else if(args[0].equalsIgnoreCase("extract") || args[0].equalsIgnoreCase("ex")) {
                     if(sender instanceof Player) {
                         UUID id = ((Player) sender).getUniqueId();
-                        if ((!getConfig().getConfigurationSection("generalOptions").getBoolean("alwaysExtract") && started) || getConfig().getConfigurationSection("generalOptions").getBoolean("alwaysExtract")) {
-
+                        if (getConfig().getConfigurationSection("generalOptions").getBoolean("alwaysExtract") || started) {
                             if(args.length == 1) {
                                 if (playersLives.get(id) > 1) {
-                                    playersLives.put(id, playersLives.get(id) - 1);
 
+                                    playersLives.put(id, playersLives.get(id) - 1);
                                     giveItem((Player) sender, 1);
                                     sender.sendMessage(ChatColor.GREEN + "You have extracted one of your lives! You now have " + playersLives.get(id) + " live/s.");
 
@@ -315,63 +315,63 @@ public final class Lives extends JavaPlugin implements Listener {
                                 }
                             } else if(StringUtils.isNumeric(args[1])) {
                                 if (playersLives.get(id) > Integer.parseInt(args[1])) {
-                                    playersLives.put(id, playersLives.get(id) - Integer.parseInt(args[1]));
 
+                                    playersLives.put(id, playersLives.get(id) - Integer.parseInt(args[1]));
                                     giveItem((Player) sender, Integer.parseInt(args[1]));
-                                    sender.sendMessage(ChatColor.GREEN + "You have extracted " + args[1] +  " lives! You now have " + playersLives.get(id) + " live/s.");
+                                    sender.sendMessage(ChatColor.GREEN + "You have extracted " + args[1] +  " of your lives! You now have " + playersLives.get(id) + " live/s.");
 
                                     autoSave();
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "You don't have enough lives!");
                                 }
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /l extract (number)!");
                             }
-                            else {
-                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Second argument must be a number!");
-                            }
-                        }
-                        else {
-                            sender.sendMessage(ChatColor.RED + "Lives counting must be on to extract lives!");
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Main counting must be on to extract lives!");
                         }
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
                     }
                 }
+
                 //command /lives version
                 else if(args[0].equalsIgnoreCase("version")) {
                     sender.sendMessage("The plugin version is " + getDescription().getVersion());
                 }
+
                 //command /l scoreboard
                 else if(args[0].equalsIgnoreCase("scoreboard") || args[0].equalsIgnoreCase("score")) {
                     if (sender.hasPermission("lives.scoreboard")) {
-
                         if (args.length > 1) {
-
                             if (args[1].equalsIgnoreCase("show")) {
+
                                 sender.sendMessage(ChatColor.GREEN + "Showing the scoreboard");
                                 scoreboardShown = true;
 
                                 updateScores();
-
                             } else if (args[1].equalsIgnoreCase("hide")) {
-                                sender.sendMessage(ChatColor.RED + "Hidden the scoreboard");
+
+                                sender.sendMessage(ChatColor.RED + "Hid the scoreboard");
                                 scoreboardShown = false;
 
                                 for (Player online : Bukkit.getOnlinePlayers()) {
                                     online.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
                                 }
-
                             } else if (args[1].equalsIgnoreCase("update")) {
                                 updateScores();
+                                sender.sendMessage(ChatColor.GREEN + "Updated the scoreboard!");
                             } else {
-                                sender.sendMessage(ChatColor.RED + "Wrong argument! Use: /lives help to see usage");
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives help admin to see usage");
                             }
                         } else {
-                            sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help admin to see usage");
                         }
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 //command /l set [Player] [n]
                 else if(args[0].equalsIgnoreCase("set")) {
                     if(sender.hasPermission("lives.set")) {
@@ -386,17 +386,16 @@ public final class Lives extends JavaPlugin implements Listener {
                                     sender.sendMessage(ChatColor.RED + "Player offline!");
                                 }
                             } else {
-                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Third argument must be a number!");
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Usage: /l set [Player] [number]!");
                             }
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /l set [Player] [number]!");
                         }
-                        else {
-                            sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
-                        }
-                    }
-                    else {
+                    } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 //command /l add [Player] [n]
                 else if(args[0].equalsIgnoreCase("add")) {
                     if(sender.hasPermission("lives.set")) {
@@ -411,43 +410,40 @@ public final class Lives extends JavaPlugin implements Listener {
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "Player offline!");
                                 }
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Usage: /l add [Player] [number]!");
                             }
-                            else {
-                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Third argument must be a number!");
-                            }
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /l add [Player] [number]!");
                         }
-                        else {
-                            sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
-                        }
-                    }
-                    else {
+                    } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 //command /l addeveryone [n] (/l addev [n])
                 else if(args[0].equalsIgnoreCase("addeveryone") || args[0].equalsIgnoreCase("addev")) {
                     if(sender.hasPermission("lives.set")) {
                         if(args.length > 1) {
                             if(StringUtils.isNumeric(args[2])) {
                                 for (Player online : Bukkit.getOnlinePlayers()) {
-                                    playersLives.put(online.getUniqueId(), Integer.valueOf(args[1]));
-                                    sender.sendMessage(ChatColor.GREEN + "Set everyone's lives to " + args[2] + '!');
+                                    playersLives.put(online.getUniqueId(), playersLives.get(online.getUniqueId()) + Integer.valueOf(args[1]));
+                                    sender.sendMessage(ChatColor.GREEN + "Added everyone " + args[2] + " lives!");
 
                                     autoSave();
                                 }
-                            }
-                            else {
-                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Second argument must be a number!");
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Usage: /l addev [number]!");
                             }
                         }
                         else {
-                            sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /lives help to see usage");
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /l addev [number]!");
                         }
-                    }
-                    else {
+                    } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                     }
                 }
+
                 // /lives revive [Player] (/l rev) and /l admin_revive (/l arev)
                 else if (args[0].equalsIgnoreCase("revive") || args[0].equalsIgnoreCase("rev")  || args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev")) {
                     Boolean revive = getConfig().getConfigurationSection("reviving").getBoolean("allowed");
@@ -517,6 +513,7 @@ public final class Lives extends JavaPlugin implements Listener {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to use that command!");
                     }
                 }
+
                 //wrong command
                 else {
                     sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives help to see commands");
@@ -527,7 +524,6 @@ public final class Lives extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        //Someone died - removing life
         if(started) {
 
             Player player = e.getEntity();
@@ -535,7 +531,6 @@ public final class Lives extends JavaPlugin implements Listener {
             player.sendMessage(ChatColor.RED + "You lost one life. You now have " + playersLives.get(player.getUniqueId()) + " live/s.");
 
             autoSave();
-
             if (playersLives.get(player.getUniqueId()) < 1) {
                 getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " lost his last life.");
 
@@ -556,7 +551,7 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void add_life(PlayerInteractEvent e) {
+    public void addLife(PlayerInteractEvent e) {
         //using the life item
         Player player = e.getPlayer();
         if(e.hasItem()) {
@@ -572,33 +567,27 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void newPlayer(PlayerJoinEvent e) {
+    public void join(PlayerJoinEvent e) {
         //adding player if not in the database
         if(!playersLives.containsKey(e.getPlayer().getUniqueId())) {
             playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("onJoinLives"));
-            autoSave();
         }
         else if(playersLives.get(e.getPlayer().getUniqueId()) < 1) {
             if(getConfig().getConfigurationSection("penalty").getString("type").equalsIgnoreCase("GM3")) {
                 e.getPlayer().setGameMode(GameMode.SPECTATOR);
-            }
-            else {
+            } else {
                 e.getPlayer().sendMessage(ChatColor.GREEN + "You have been revived!");
-                playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-
-                if(getConfig().getConfigurationSection("livesManagement").getBoolean("autoSave")) {
-                    saveLives();
-                }
-                updateScores();
+                playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
             }
         }
         if(scoreboardShown) {
             updateScores();
         }
+        autoSave();
     }
 
     @EventHandler
-    public void moveBlock(InventoryClickEvent e) {
+    public void moveItem(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
         if(e.getCurrentItem() != null) {
             if (e.getCurrentItem().getType().equals(Material.GHAST_TEAR) && e.getCurrentItem().containsEnchantment(Enchantment.DURABILITY)) {
@@ -607,16 +596,12 @@ public final class Lives extends JavaPlugin implements Listener {
 
                     playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + e.getCurrentItem().getAmount());
                     e.getCurrentItem().setAmount(0);
-                    player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getUniqueId()) + " live/s.");
+                    player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getUniqueId()) + " lives.");
 
                     autoSave();
                 }
             }
         }
-    }
-
-    public FileConfiguration getCustomConfig() {
-        return this.customConfig;
     }
 
     private void createCustomConfig() {
@@ -645,7 +630,7 @@ public final class Lives extends JavaPlugin implements Listener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        getLogger().info("Saved lives to file");
+        getLogger().info("[Main]: Saved lives to file");
     }
 
     public void loadLives() {
@@ -660,15 +645,14 @@ public final class Lives extends JavaPlugin implements Listener {
             try {
                 playersLives.put(UUID.fromString(i), customConfig.getInt(i));
             } catch (IllegalArgumentException ignored) {
-                getLogger().warning("Check lives.yml file, one of the entries is not an UUID and may cause plugin to 'crash'");
+                getLogger().warning("[Main]: Check lives.yml file, one of the entries is not a valid UUID and may cause plugin to 'crash'");
             }
         }
-        getLogger().info("Loaded lives from file");
+        getLogger().info("[Main]: Loaded lives from file");
         updateScores();
     }
 
     public void giveItem(Player player, int amount) {
-        //just to make code shorter - give item method
         ItemStack life = new ItemStack(Material.GHAST_TEAR);
         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
         ItemMeta lifeMeta = life.getItemMeta();
@@ -679,28 +663,27 @@ public final class Lives extends JavaPlugin implements Listener {
     }
 
     public void updateScores() {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
-        Scoreboard livesBoard = manager.getNewScoreboard();
-        Objective objective = livesBoard.registerNewObjective("lives", "dummy", ChatColor.RED + getConfig().getConfigurationSection("scoreboard").getString("name"));
+        if (scoreboardShown) {
+            ScoreboardManager manager = Bukkit.getScoreboardManager();
+            Scoreboard livesBoard = manager.getNewScoreboard();
+            Objective objective = livesBoard.registerNewObjective("lives", "dummy", ChatColor.RED + getConfig().getConfigurationSection("scoreboard").getString("name"));
 
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.setScoreboard(livesBoard);
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                online.setScoreboard(livesBoard);
 
-            objective.getScore(online.getName()).setScore(playersLives.get(online.getUniqueId()));
-        }
+                objective.getScore(online.getName()).setScore(playersLives.get(online.getUniqueId()));
+            }
 
-        if(getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("TAB")) {
-            objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
-        }
-        else if(getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("SIDE")) {
-            objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        }
-        else if(getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("UNDER_NAME")) {
-            objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
-        }
-        else {
-            getLogger().warning("The option \"type\" in config file under section \"scoreboard\" was set to an incorrect value! Using TAB by default!");
-            objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+            if (getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("TAB")) {
+                objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+            } else if (getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("SIDE")) {
+                objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+            } else if (getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("UNDER_NAME")) {
+                objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
+            } else {
+                getLogger().warning("[Main]: The option \"type\" in config file under section \"scoreboard\" was set to an incorrect value! Using TAB by default!");
+                objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+            }
         }
     }
 
@@ -713,9 +696,5 @@ public final class Lives extends JavaPlugin implements Listener {
         }
 
         updateScores();
-    }
-
-    public void revive(Player player, Boolean admin) {
-
     }
 }
