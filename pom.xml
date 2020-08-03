@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.bewu.lives</groupId>
-    <artifactId>Main</artifactId>
+    <artifactId>Lives</artifactId>
     <version>1.8.1</version>
     <packaging>jar</packaging>
 

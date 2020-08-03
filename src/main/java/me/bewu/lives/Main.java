@@ -11,12 +11,15 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.*;
 
@@ -46,7 +49,7 @@ public final class Main extends JavaPlugin implements Listener {
 
         //ad
         getLogger().info("-------------------------------------------------");
-        getLogger().info("Main plugin was made by bewu.");
+        getLogger().info("Lives plugin was made by bewu.");
         getLogger().info("Please consider donating on https://ko-fi.com/bewuwy");
         getLogger().info("-------------------------------------------------");
 
@@ -444,7 +447,7 @@ public final class Main extends JavaPlugin implements Listener {
                     }
                 }
 
-                // /lives revive [Player] (/l rev) and /l admin_revive (/l arev)
+                //command /lives revive [Player] (/l rev) and /l admin_revive (/l arev)
                 else if (args[0].equalsIgnoreCase("revive") || args[0].equalsIgnoreCase("rev")  || args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev")) {
                     Boolean revive = getConfig().getConfigurationSection("reviving").getBoolean("allowed");
                     Boolean admin = false;
@@ -554,8 +557,8 @@ public final class Main extends JavaPlugin implements Listener {
     public void addLife(PlayerInteractEvent e) {
         //using the life item
         Player player = e.getPlayer();
-        if(e.hasItem()) {
-            if (Objects.requireNonNull(e.getItem()).getType() == Material.GHAST_TEAR && e.getItem().containsEnchantment(Enchantment.DURABILITY)) {
+        if(e.getItem() != null) {
+            if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && checkItem(e.getItem())) {
 
                 player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
                 playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + 1);
@@ -589,18 +592,14 @@ public final class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void moveItem(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
-        if(e.getCurrentItem() != null) {
-            if (e.getCurrentItem().getType().equals(Material.GHAST_TEAR) && e.getCurrentItem().containsEnchantment(Enchantment.DURABILITY)) {
-                if (!player.hasPermission("lives.moveItem")) {
-                    e.setCancelled(true);
+        if (e.getCurrentItem() != null && checkItem(e.getCurrentItem()) && !player.hasPermission("lives.moveItem") && player.getGameMode() != GameMode.CREATIVE) {
+            e.setCancelled(true);
 
-                    playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + e.getCurrentItem().getAmount());
-                    e.getCurrentItem().setAmount(0);
-                    player.sendMessage(ChatColor.GREEN + "Added a live/s. You now have " + playersLives.get(player.getUniqueId()) + " lives.");
+            playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + e.getCurrentItem().getAmount());
+            e.getCurrentItem().setAmount(0);
+            player.sendMessage(ChatColor.GREEN + "Added " + e.getCurrentItem().getAmount() +" live/s. You now have " + playersLives.get(player.getUniqueId()) + " live/s.");
 
-                    autoSave();
-                }
-            }
+            autoSave();
         }
     }
 
@@ -657,9 +656,21 @@ public final class Main extends JavaPlugin implements Listener {
         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
         ItemMeta lifeMeta = life.getItemMeta();
         lifeMeta.setDisplayName(getConfig().getConfigurationSection("generalOptions").getString("itemName"));
+        lifeMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        NamespacedKey key = new NamespacedKey(this, "lives");
+        lifeMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "item");
+
         life.setItemMeta(lifeMeta);
         life.setAmount(amount);
         player.getInventory().addItem(life);
+    }
+
+    public boolean checkItem(ItemStack item) {
+        NamespacedKey key = new NamespacedKey(this, "lives");
+        ItemMeta meta = item.getItemMeta();
+
+        assert meta != null;
+        return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING) && meta.getPersistentDataContainer().get(key, PersistentDataType.STRING).equals("item");
     }
 
     public void updateScores() {
