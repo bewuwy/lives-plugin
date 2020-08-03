@@ -2,6 +2,7 @@
 
 generalOptions:
   itemName: Life        #Changes the name of the life item
+  item: GHAST_TEAR      #Changes what is the life item. "List" of options: https://github.com/Bukkit/Bukkit/blob/master/src/main/java/org/bukkit/Material.java
   resetLives: 3         #Changes the default amount of lives for /l reset
   onJoinLives: 3        #Changes how much lives a player has when joining for the first time
   defStarted: true      #If lives counting should be on when plugins starts
@@ -28,4 +29,4 @@ reviving:
   lives: 3              #Number of lives you get after reviving
 
 #If you change this variable, your config will be cleared!
-configVersion: 2.4
+configVersion: 2.5

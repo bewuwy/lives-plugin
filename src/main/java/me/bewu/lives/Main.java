@@ -89,9 +89,9 @@ public final class Main extends JavaPlugin implements Listener {
                     saveDefaultConfig();
 
                     getLogger().warning("-------------------------------------------------");
-                    getLogger().warning("[Main]: Config.yml outdated (v" + oldVer + ")");
-                    getLogger().warning("[Main]: Updated it to the latest version and reset values.");
-                    getLogger().warning("[Main]: You can see the old config in file old_config_v" + oldVer + ".yml !");
+                    getLogger().warning("[Lives]: Config.yml outdated (v" + oldVer + ")");
+                    getLogger().warning("[Lives]: Updated it to the latest version and reset values.");
+                    getLogger().warning("[Lives]: You can see the old config in file old_config_v" + oldVer + ".yml !");
                     getLogger().warning("-------------------------------------------------");
 
                 }
@@ -441,6 +441,31 @@ public final class Main extends JavaPlugin implements Listener {
                     }
                 }
 
+                //command /l remove [Player] [n]
+                else if(args[0].equalsIgnoreCase("remove")) {
+                    if(sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
+                        if(args.length > 2) {
+                            if(StringUtils.isNumeric(args[2])) {
+                                if(getServer().getPlayer(args[1]) != null) {
+                                    UUID id = getServer().getPlayer(args[1]).getUniqueId();
+                                    playersLives.put(id, playersLives.get(id) - Integer.parseInt(args[2]));
+                                    sender.sendMessage(ChatColor.GREEN + "Removed " + args[1] + " " + args[2] + " live/s!");
+
+                                    autoSave();
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "Player offline!");
+                                }
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Usage: /l remove [Player] [number]!");
+                            }
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /l remove [Player] [number]!");
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
+                    }
+                }
+
                 //command /l addeveryone [n] (/l addev [n])
                 else if(args[0].equalsIgnoreCase("addeveryone") || args[0].equalsIgnoreCase("addev")) {
                     if(sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
@@ -624,7 +649,7 @@ public final class Main extends JavaPlugin implements Listener {
     }
 
     public void giveItem(Player player, int amount) {
-        ItemStack life = new ItemStack(Material.GHAST_TEAR);
+        ItemStack life = new ItemStack(Material.getMaterial(getConfig().getConfigurationSection("generalOptions").getString("item")));
         life.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
         ItemMeta lifeMeta = life.getItemMeta();
         lifeMeta.setDisplayName(getConfig().getConfigurationSection("generalOptions").getString("itemName"));
