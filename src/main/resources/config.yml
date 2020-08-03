@@ -1,7 +1,7 @@
 #Lives plugin config file (version 2)
 
 generalOptions:
-  itemName: Live        #Changes the name of the live item
+  itemName: Life        #Changes the name of the life item
   resetLives: 3         #Changes the default amount of lives for /l reset
   onJoinLives: 3        #Changes how much lives a player has when joining for the first time
   defStarted: true      #If lives counting should be on when plugins starts

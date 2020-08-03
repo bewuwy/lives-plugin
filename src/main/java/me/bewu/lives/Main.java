@@ -166,18 +166,32 @@ public final class Main extends JavaPlugin implements Listener {
                     }
                 }
 
-                //command /lives give [n] (From console: /l give [Player] [n])
+                //command /lives give (Player) [n]
                 else if (args[0].equalsIgnoreCase("give")) {
-                    if(sender instanceof Player) {
+                    if (sender instanceof Player) {
                         if (sender.hasPermission("lives.give")) {
                             if (args.length > 1) {
                                 if (StringUtils.isNumeric(args[1])) {
                                     giveItem((Player) sender, Integer.parseInt(args[1]));
+                                    sender.sendMessage(ChatColor.GREEN + "Gave you " + args[1] + " live item/s");
+                                } else if (getServer().getPlayer(args[1]) != null) {
+                                    if (args.length > 2) {
+                                        if (StringUtils.isNumeric(args[2])) {
+                                            giveItem(getServer().getPlayer(args[1]), Integer.parseInt(args[2]));
+                                            sender.sendMessage(ChatColor.GREEN + "Gave " + args[1] + " " + args[2] + " live item/s");
+                                        } else {
+                                            sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give (Player) [number]");
+                                        }
+                                    } else {
+                                        giveItem(getServer().getPlayer(args[1]), 1);
+                                        sender.sendMessage(ChatColor.GREEN + "Gave " + args[1] + " 1 live item");
+                                    }
                                 } else {
-                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give [number]");
+                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give (Player) [number]");
                                 }
                             } else {
                                 giveItem((Player) sender, 1);
+                                sender.sendMessage(ChatColor.GREEN + "Gave you 1 live item");
                             }
                         } else {
                             sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
@@ -188,13 +202,13 @@ public final class Main extends JavaPlugin implements Listener {
                                 if (args.length > 2) {
                                     if (StringUtils.isNumeric(args[2])) {
                                         giveItem(getServer().getPlayer(args[1]), Integer.parseInt(args[2]));
-                                        sender.sendMessage("Gave " + args[2] + " live items to " + args[1]);
+                                        sender.sendMessage("Gave "  + args[1] + " " + args[2] + " live item/s");
                                     } else {
                                         sender.sendMessage("Invalid syntax! From console use: /lives give [Player] [number]");
                                     }
                                 } else {
                                     giveItem(getServer().getPlayer(args[1]), 1);
-                                    sender.sendMessage("Gave 1 live item to " + args[1]);
+                                    sender.sendMessage("Gave " + args[1] +" 1 live item");
                                 }
                             } else  {
                                 sender.sendMessage("Player must be online!");
@@ -592,7 +606,7 @@ public final class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void moveItem(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
-        if (e.getCurrentItem() != null && checkItem(e.getCurrentItem()) && !player.hasPermission("lives.moveItem") && player.getGameMode() != GameMode.CREATIVE) {
+        if (player.getGameMode() != GameMode.CREATIVE && e.getCurrentItem() != null && checkItem(e.getCurrentItem()) && !player.hasPermission("lives.moveItem")) {
             e.setCancelled(true);
 
             playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + e.getCurrentItem().getAmount());
