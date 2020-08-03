@@ -8,6 +8,9 @@ commands:
     description: Main command, to get help use /lives help
     aliases: [l]
 permissions:
+  lives.*:
+    description: Gives you all plugin permissions
+    default: op
   lives.set:
     description: Allows you to reset, set and add players lives.
     default: op

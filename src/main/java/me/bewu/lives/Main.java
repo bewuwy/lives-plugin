@@ -21,6 +21,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.*;
 
 import java.io.File;
@@ -116,26 +118,27 @@ public final class Main extends JavaPlugin implements Listener {
                     }
                 }
 
-                //command /lives reset [n]
+                //command /lives reset (n) (revive)
                 else if (args[0].equalsIgnoreCase("reset")) {
-                    if (sender.hasPermission("lives.reset")) {
+                    if (sender.hasPermission("lives.reset") || sender.hasPermission("lives.*")) {
                         for (Player i : Bukkit.getOnlinePlayers()) {
-                            if (i.getGameMode() == GameMode.SPECTATOR) {
-                                if (i.getBedSpawnLocation() != null) {
-                                    i.teleport(i.getBedSpawnLocation());
-                                }
-                                i.setGameMode(GameMode.SURVIVAL);
-                            }
                             if (args.length > 1) {
                                 if (StringUtils.isNumeric(args[1])) {
                                     playersLives.put(i.getUniqueId(), Integer.valueOf(args[1]));
                                     sender.sendMessage(ChatColor.GREEN + "Reset " + i.getName() + " lives to " + args[1]);
+                                } else if (args[1].equalsIgnoreCase("revive")) {
+                                    playersLives.put(i.getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                    sender.sendMessage(ChatColor.GREEN + "Reset " + i.getName() + " lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                    revivePlayer(i.getName(), true, sender);
                                 } else {
-                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset [number]");
+                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset (number) (revive)");
                                 }
                             } else {
                                 playersLives.put(i.getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                sender.sendMessage(ChatColor.GREEN + "Reset" + i.getName() + "lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                sender.sendMessage(ChatColor.GREEN + "Reset " + i.getName() + " lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                            }
+                            if (args.length > 2 && args[2].equalsIgnoreCase("revive")) {
+                                revivePlayer(i.getName(), true, sender);
                             }
                         }
                         autoSave();
@@ -147,7 +150,7 @@ public final class Main extends JavaPlugin implements Listener {
                 //command /lives get [Player]
                 else if (args[0].equalsIgnoreCase("get")) {
                     if(args.length > 1) {
-                        if (sender.hasPermission("lives.get")) {
+                        if (sender.hasPermission("lives.get") || sender.hasPermission("lives.*")) {
                             if (getServer().getPlayer(args[1]) != null) {
                                 UUID id = getServer().getPlayer(args[1]).getUniqueId();
                                 if (playersLives.containsKey(id)) {
@@ -169,7 +172,7 @@ public final class Main extends JavaPlugin implements Listener {
                 //command /lives give (Player) [n]
                 else if (args[0].equalsIgnoreCase("give")) {
                     if (sender instanceof Player) {
-                        if (sender.hasPermission("lives.give")) {
+                        if (sender.hasPermission("lives.give") || sender.hasPermission("lives.*")) {
                             if (args.length > 1) {
                                 if (StringUtils.isNumeric(args[1])) {
                                     giveItem((Player) sender, Integer.parseInt(args[1]));
@@ -221,7 +224,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /lives stop (quiet)
                 else if (args[0].equalsIgnoreCase("stop")) {
-                    if (sender.hasPermission("lives.control")) {
+                    if (sender.hasPermission("lives.control") || sender.hasPermission("lives.*")) {
                         if (args.length > 1 && args[1].equalsIgnoreCase("quiet")) {
                             getServer().broadcastMessage(ChatColor.RED + "Stopped counting lives!");
                         }
@@ -234,7 +237,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /lives start (quiet)
                 else if (args[0].equalsIgnoreCase("start")) {
-                    if (sender.hasPermission("lives.control")) {
+                    if (sender.hasPermission("lives.control") || sender.hasPermission("lives.*")) {
                         if (args.length > 1 && args[1].equalsIgnoreCase("quiet")) {
                             getServer().broadcastMessage(ChatColor.GREEN + "Started counting lives!");
                         }
@@ -256,7 +259,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /lives reset_config
                 else if (args[0].equalsIgnoreCase("reset_config")) {
-                    if (sender.hasPermission("lives.config.reset")) {
+                    if (sender.hasPermission("lives.config.reset") || sender.hasPermission("lives.*")) {
                         File file = new File(getDataFolder(), "config.yml");
                         file.delete();
                         saveDefaultConfig();
@@ -268,7 +271,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /lives save
                 else if (args[0].equalsIgnoreCase("save")) {
-                    if (sender.hasPermission("lives.save")) {
+                    if (sender.hasPermission("lives.save") || sender.hasPermission("lives.*")) {
 
                         saveLives();
                         sender.sendMessage(ChatColor.GREEN + "Successfully saved lives to file!");
@@ -279,7 +282,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /lives load
                 else if (args[0].equalsIgnoreCase("load")) {
-                    if (sender.hasPermission("lives.save")) {
+                    if (sender.hasPermission("lives.save") || sender.hasPermission("lives.*")) {
 
                         loadLives();
                         sender.sendMessage(ChatColor.GREEN + "Successfully loaded lives from file!");
@@ -359,7 +362,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /l scoreboard
                 else if(args[0].equalsIgnoreCase("scoreboard") || args[0].equalsIgnoreCase("score")) {
-                    if (sender.hasPermission("lives.scoreboard")) {
+                    if (sender.hasPermission("lives.scoreboard") || sender.hasPermission("lives.*")) {
                         if (args.length > 1) {
                             if (args[1].equalsIgnoreCase("show")) {
 
@@ -391,7 +394,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /l set [Player] [n]
                 else if(args[0].equalsIgnoreCase("set")) {
-                    if(sender.hasPermission("lives.set")) {
+                    if(sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
                         if(args.length > 2) {
                             if(StringUtils.isNumeric(args[2])) {
                                 if(getServer().getPlayer(args[1]) != null) {
@@ -415,7 +418,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /l add [Player] [n]
                 else if(args[0].equalsIgnoreCase("add")) {
-                    if(sender.hasPermission("lives.set")) {
+                    if(sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
                         if(args.length > 2) {
                             if(StringUtils.isNumeric(args[2])) {
                                 if(getServer().getPlayer(args[1]) != null) {
@@ -440,7 +443,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /l addeveryone [n] (/l addev [n])
                 else if(args[0].equalsIgnoreCase("addeveryone") || args[0].equalsIgnoreCase("addev")) {
-                    if(sender.hasPermission("lives.set")) {
+                    if(sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
                         if(args.length > 1) {
                             if(StringUtils.isNumeric(args[2])) {
                                 for (Player online : Bukkit.getOnlinePlayers()) {
@@ -462,66 +465,24 @@ public final class Main extends JavaPlugin implements Listener {
                 }
 
                 //command /lives revive [Player] (/l rev) and /l admin_revive (/l arev)
-                else if (args[0].equalsIgnoreCase("revive") || args[0].equalsIgnoreCase("rev")  || args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev")) {
-                    Boolean revive = getConfig().getConfigurationSection("reviving").getBoolean("allowed");
-                    Boolean admin = false;
+                else if (args[0].equalsIgnoreCase("revive") || args[0].equalsIgnoreCase("rev") || args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev")) {
+                    boolean revive = getConfig().getConfigurationSection("reviving").getBoolean("allowed");
+                    boolean admin = false;
                     if (args[0].equalsIgnoreCase("admin_revive") || args[0].equalsIgnoreCase("arev") || !(sender instanceof Player)) {
-                        if (sender.hasPermission("lives.revive.admin")) {
+                        if (sender.hasPermission("lives.revive.admin") || sender.hasPermission("lives.*")) {
                             admin = true;
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
                         }
                     }
-                    if (revive || sender.hasPermission("lives.revive")) {
+                    if (revive || (sender.hasPermission("lives.revive") || sender.hasPermission("lives.*"))) {
                         if (args.length > 1) {
                             autoSave();
                             if (!sender.getName().equalsIgnoreCase(args[1]) || admin) {
-
-                                Integer cost = getConfig().getConfigurationSection("reviving").getInt("cost");
-                                if (admin || playersLives.get(((Player) sender).getUniqueId()) > cost) {
-                                    String pen = getConfig().getConfigurationSection("penalty").getString("type");
-
-                                    if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
-                                        if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]) != null) {
-
-                                            if (getServer().getBanList(BanList.Type.NAME).getBanEntry(args[1]).getReason().equalsIgnoreCase(getConfig().getConfigurationSection("penalty").getString("banMessage"))) {
-                                                if (!admin) {
-                                                    playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
-                                                } else {
-                                                    sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
-                                                }
-
-                                                getServer().getBanList(BanList.Type.NAME).pardon(args[1]);
-                                            }
-                                            else {
-                                                sender.sendMessage(ChatColor.RED + "This player wasn't banned for loosing his last life! If you believe this is a mistake, please contact the server administrators.");
-                                            }
-                                        } else {
-                                            sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
-                                        }
-                                    } else if (pen.equalsIgnoreCase("GM3")) {
-                                        if (getServer().getPlayer(args[1]) != null) {
-                                            getServer().getPlayer(args[1]).setGameMode(GameMode.SURVIVAL);
-
-                                            if(!admin) {
-                                                playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + " and took " + cost + " of your lives!");
-                                            }
-                                            else {
-                                                sender.sendMessage(ChatColor.GREEN + "Revived " + args[1] + "!");
-                                            }
-
-                                            playersLives.put(getServer().getPlayer(args[1]).getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
-                                        } else {
-                                            sender.sendMessage(ChatColor.RED + "This player is not online!");
-                                        }
-                                    }
-                                        autoSave();
-                                    } else {
-                                        sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (" + (cost + 1) + " required)");
-                                    }
-                                } else {
-                                    sender.sendMessage(ChatColor.RED + "You can't revive yourself!");
-                                }
+                                revivePlayer(args[1], admin, sender);
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "You can't revive yourself!");
+                            }
                         } else {
                             sender.sendMessage(ChatColor.RED + "Too few arguments! See /lives help for usage.");
                         }
@@ -584,12 +545,11 @@ public final class Main extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void join(PlayerJoinEvent e) {
+    public void onJoin(PlayerJoinEvent e) {
         //adding player if not in the database
         if(!playersLives.containsKey(e.getPlayer().getUniqueId())) {
             playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("onJoinLives"));
-        }
-        else if(playersLives.get(e.getPlayer().getUniqueId()) < 1) {
+        } else if(playersLives.get(e.getPlayer().getUniqueId()) < 1) {
             if(getConfig().getConfigurationSection("penalty").getString("type").equalsIgnoreCase("GM3")) {
                 e.getPlayer().setGameMode(GameMode.SPECTATOR);
             } else {
@@ -597,16 +557,14 @@ public final class Main extends JavaPlugin implements Listener {
                 playersLives.put(e.getPlayer().getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
             }
         }
-        if(scoreboardShown) {
-            updateScores();
-        }
+
         autoSave();
     }
 
     @EventHandler
     public void moveItem(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
-        if (player.getGameMode() != GameMode.CREATIVE && e.getCurrentItem() != null && checkItem(e.getCurrentItem()) && !player.hasPermission("lives.moveItem")) {
+        if (player.getGameMode() != GameMode.CREATIVE && e.getCurrentItem() != null && checkItem(e.getCurrentItem()) && (!player.hasPermission("lives.moveItem") && !player.hasPermission("lives.*"))) {
             e.setCancelled(true);
 
             playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + e.getCurrentItem().getAmount());
@@ -679,6 +637,53 @@ public final class Main extends JavaPlugin implements Listener {
         player.getInventory().addItem(life);
     }
 
+    public void revivePlayer(String name, boolean admin, CommandSender sender) {
+        Integer cost = getConfig().getConfigurationSection("reviving").getInt("cost");
+        if (admin || playersLives.get(((Player) sender).getUniqueId()) > cost) {
+            String pen = getConfig().getConfigurationSection("penalty").getString("type");
+
+            if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
+                if (getServer().getBanList(BanList.Type.NAME).getBanEntry(name) != null) {
+
+                    if (getServer().getBanList(BanList.Type.NAME).getBanEntry(name).getReason().equalsIgnoreCase(getConfig().getConfigurationSection("penalty").getString("banMessage"))) {
+                        if (!admin) {
+                            playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
+                        } else {
+                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
+                        }
+
+                        getServer().getBanList(BanList.Type.NAME).pardon(name);
+                    }
+                    else {
+                        sender.sendMessage(ChatColor.RED + "This player wasn't banned for loosing his last life! If you believe this is a mistake, please contact the server administrators.");
+                    }
+                } else {
+                    sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
+                }
+            } else if (pen.equalsIgnoreCase("GM3")) {
+                if (getServer().getPlayer(name) != null) {
+                    getServer().getPlayer(name).setGameMode(GameMode.SURVIVAL);
+                    getServer().getPlayer(name).addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 350, 200, true, false));
+
+                    if(!admin) {
+                        playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                        sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
+                    } else {
+                        sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
+                    }
+
+                    playersLives.put(getServer().getPlayer(name).getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
+                }  else {
+                    sender.sendMessage(ChatColor.RED + "This player is not online!");
+                }
+            }
+            autoSave();
+        } else {
+            sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (" + (cost + 1) + " required)");
+        }
+    }
+
     public boolean checkItem(ItemStack item) {
         NamespacedKey key = new NamespacedKey(this, "lives");
         ItemMeta meta = item.getItemMeta();
@@ -720,6 +725,8 @@ public final class Main extends JavaPlugin implements Listener {
             }
         }
 
-        updateScores();
+        if(scoreboardShown) {
+            updateScores();
+        }
     }
 }
