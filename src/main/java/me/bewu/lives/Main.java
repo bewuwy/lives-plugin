@@ -517,6 +517,20 @@ public final class Main extends JavaPlugin implements Listener {
                     }
                 }
 
+                //command /l [Player] - shorter /l get
+                else if (getServer().getPlayer(args[0]) != null) {
+                    if (sender.hasPermission("lives.get") || sender.hasPermission("lives.*")) {
+                        UUID id = getServer().getPlayer(args[0]).getUniqueId();
+                        if (playersLives.containsKey(id)) {
+                            sender.sendMessage(ChatColor.GREEN + args[0] + " has got " + playersLives.get(id) + " live/s.");
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "This is a bug!");
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
+                    }
+                }
+
                 //wrong command
                 else {
                     sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives help to see commands");
@@ -558,12 +572,17 @@ public final class Main extends JavaPlugin implements Listener {
         //using the life item
         Player player = e.getPlayer();
         if(e.getItem() != null) {
-            if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && checkItem(e.getItem())) {
+            if(checkItem(e.getItem())) {
+                if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) {
 
-                player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
-                playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + 1);
-                player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getUniqueId()) + " live/s.");
-
+                    e.getItem().setAmount(e.getItem().getAmount() - 1);
+                    playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + 1);
+                    player.sendMessage(ChatColor.GREEN + "Added a life. You now have " + playersLives.get(player.getUniqueId()) + " live/s.");
+                } else {
+                    playersLives.put(player.getUniqueId(), playersLives.get(player.getUniqueId()) + e.getItem().getAmount());
+                    player.sendMessage(ChatColor.GREEN + "Added " + e.getItem().getAmount() + " live/s. You now have " + playersLives.get(player.getUniqueId()) + " live/s.");
+                    e.getItem().setAmount(0);
+                }
                 autoSave();
             }
         }
