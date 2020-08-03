@@ -295,7 +295,7 @@ public final class Main extends JavaPlugin implements Listener {
                 else if (args[0].equalsIgnoreCase("help")) {
 
                     sender.sendMessage(ChatColor.YELLOW + " Default commands:\n" + ChatColor.RESET +
-                            " - /lives (Alias: /l) - tells you how many lives you have\n" +
+                            " - /lives (Player) (Alias: /l) - tells you how many lives you (or specified player) have\n" +
                             " - /lives get [Player] - tells you how many lives the player has\n" +
                             " - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)\n" +
                             " - /lives revive [Player] (Alias: /l rev) - revives a player for some lives\n" +
@@ -304,10 +304,11 @@ public final class Main extends JavaPlugin implements Listener {
 
                     if(args.length > 1 && args[1].equalsIgnoreCase("admin")) {
                         sender.sendMessage(ChatColor.YELLOW + "\n Administrator commands:\n" + ChatColor.RESET +
-                                " - /lives reset (n) - resets lives counter for everyone to n lives (def 3)\n" +
-                                " - /lives give (n) - gives you n live items (def 1)\n" +
+                                " - /lives reset (n) (revive) - resets lives counter for everyone to n lives (def 3), if run with revive options, revives everyone\n" +
+                                " - /lives give (Player) (n) - gives you (or specified player) n live items (def 1)\n" +
                                 " - /lives set [Player] [n] - sets players lives to n\n" +
                                 " - /lives add [Player] [n] - adds player n lives\n" +
+                                " - /lives remove [Player] [n] - removes player n lives\n" +
                                 " - /lives addeveryone [n] (Alias: /l addev) - adds everyone n lives\n" +
                                 " - /lives admin_revive [Player] (Alias: /l arev) - revives a player \"for free\"\n" +
                                 " - /lives [start | stop] - stops/starts lives counting\n" +

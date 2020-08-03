@@ -11,7 +11,7 @@ This plugin adds every player lives. When someone looses his last live, his game
 You can see all commands in-game by using /lives help admin
 
 **Default commands:**
-- **/lives** (Alias: /l) - tells you how many lives you have
+- **/lives (Player)** (Alias: /l) - tells you how many lives you (or specified player) have
 - **/lives get [Player]** - tells you how many lives the player has
 - **/lives extract (n)** (Alias: /l ex) - extracts n of your lives to an item (def 1)
 - **/lives revive [Player]** (Alias: /l rev) - revives a player for some lives
@@ -20,10 +20,11 @@ You can see all commands in-game by using /lives help admin
 
 
 **Administrator commands:**
-- **/lives reset (n)** - resets lives counter for everyone to n lives (def 3)
-- **/lives give (n)** - gives you n live items (def 1)
+- **/lives reset (n) (revive)** - resets lives counter for everyone to n lives (def 3), if run with revive options, revives everyone
+- **/lives give (Player) (n)** - gives you (or specified player) n live items (def 1)
 - **/lives set [Player] [n]** - sets players lives to n
 - **/lives add [Player] [n]** - adds player n lives
+- **/lives remove [Player] [n]** - removes player n lives
 - **/lives addeveryone [n]** (Alias: /l addev) - adds everyone n lives
 - **/lives admin_revive [Player]** (Alias: /l arev) - revives a player "for free"
 - **/lives [start | stop]** - stops/starts lives counting
@@ -35,6 +36,9 @@ You can see all commands in-game by using /lives help admin
 ## Permissions ##
 Plugins Permissions:
 
+  - **lives.***
+      Gives you all plugin permissions
+      default: op
   - **lives.set**:
       Allows you to reset, set and add players lives.
       default: op
