@@ -121,26 +121,36 @@ public final class Main extends JavaPlugin implements Listener {
                 //command /lives reset (n) (revive)
                 else if (args[0].equalsIgnoreCase("reset")) {
                     if (sender.hasPermission("lives.reset") || sender.hasPermission("lives.*")) {
-                        for (Player i : Bukkit.getOnlinePlayers()) {
-                            if (args.length > 1) {
-                                if (StringUtils.isNumeric(args[1])) {
+
+                        if (args.length > 1) {
+                            if (StringUtils.isNumeric(args[1])) {
+                                for (Player i : Bukkit.getOnlinePlayers()) {
                                     playersLives.put(i.getUniqueId(), Integer.valueOf(args[1]));
-                                    sender.sendMessage(ChatColor.GREEN + "Reset " + i.getName() + " lives to " + args[1]);
-                                } else if (args[1].equalsIgnoreCase("revive")) {
-                                    playersLives.put(i.getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                    sender.sendMessage(ChatColor.GREEN + "Reset " + i.getName() + " lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                    revivePlayer(i.getName(), true, sender);
-                                } else {
-                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset (number) (revive)");
                                 }
+                                sender.sendMessage(ChatColor.GREEN + "Reset " + Bukkit.getOnlinePlayers().size() + " player/s lives to " + args[1]);
+                            } else if (args[1].equalsIgnoreCase("revive")) {
+                                for (Player i : Bukkit.getOnlinePlayers()) {
+                                    playersLives.put(i.getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                    revivePlayer(i.getName(), true, sender, true);
+                                }
+                                sender.sendMessage(ChatColor.GREEN + "Reset " + Bukkit.getOnlinePlayers().size() + " player/s lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
+                                sender.sendMessage(ChatColor.GREEN + "Tried to revive " + Bukkit.getOnlinePlayers().size() + " player/s");
                             } else {
+                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset (number) (revive)");
+                            }
+                        } else {
+                            for (Player i : Bukkit.getOnlinePlayers()) {
                                 playersLives.put(i.getUniqueId(), getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                sender.sendMessage(ChatColor.GREEN + "Reset " + i.getName() + " lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
                             }
-                            if (args.length > 2 && args[2].equalsIgnoreCase("revive")) {
-                                revivePlayer(i.getName(), true, sender);
-                            }
+                            sender.sendMessage(ChatColor.GREEN + "Reset " + Bukkit.getOnlinePlayers().size() + " player/s lives to " + getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
                         }
+                        if (args.length > 2 && args[2].equalsIgnoreCase("revive")) {
+                            for (Player i : Bukkit.getOnlinePlayers()) {
+                                revivePlayer(i.getName(), true, sender, true);
+                            }
+                            sender.sendMessage(ChatColor.GREEN + "Tried to revive " + Bukkit.getOnlinePlayers().size() + " player/s");
+                        }
+
                         autoSave();
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
@@ -505,7 +515,7 @@ public final class Main extends JavaPlugin implements Listener {
                         if (args.length > 1) {
                             autoSave();
                             if (!sender.getName().equalsIgnoreCase(args[1]) || admin) {
-                                revivePlayer(args[1], admin, sender);
+                                revivePlayer(args[1], admin, sender, false);
                             } else {
                                 sender.sendMessage(ChatColor.RED + "You can't revive yourself!");
                             }
@@ -683,7 +693,7 @@ public final class Main extends JavaPlugin implements Listener {
         player.getInventory().addItem(life);
     }
 
-    public void revivePlayer(String name, boolean admin, CommandSender sender) {
+    public void revivePlayer(String name, boolean admin, CommandSender sender, boolean quiet) {
         Integer cost = getConfig().getConfigurationSection("reviving").getInt("cost");
         if (admin || playersLives.get(((Player) sender).getUniqueId()) > cost) {
             String pen = getConfig().getConfigurationSection("penalty").getString("type");
@@ -693,17 +703,17 @@ public final class Main extends JavaPlugin implements Listener {
                     if (getServer().getBanList(BanList.Type.NAME).getBanEntry(name).getReason().equalsIgnoreCase(getConfig().getConfigurationSection("penalty").getString("banMessage"))) {
                         if (!admin) {
                             playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
+                            if (!quiet) sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
                         } else {
-                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
+                            if (!quiet) sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
                         }
 
                         getServer().getBanList(BanList.Type.NAME).pardon(name);
                     } else {
-                        sender.sendMessage(ChatColor.RED + "This player hasn't been banned for losing his last life! If you believe this is a mistake, please contact the server administrators.");
+                        if (!quiet) sender.sendMessage(ChatColor.RED + "This player hasn't been banned for losing his last life! If you believe this is a mistake, please contact the server administrators.");
                     }
                 } else {
-                    sender.sendMessage(ChatColor.RED + "This player hasn't been banned!");
+                    if (!quiet) sender.sendMessage(ChatColor.RED + "This player hasn't been banned!");
                 }
             } else if (pen.equalsIgnoreCase("GM3")) {
                 if (getServer().getPlayer(name) != null) {
@@ -713,21 +723,21 @@ public final class Main extends JavaPlugin implements Listener {
 
                         if (!admin) {
                             playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
+                            if (!quiet) sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
                         } else {
-                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
+                            if (!quiet) sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
                         }
                         playersLives.put(getServer().getPlayer(name).getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
                     } else {
-                        sender.sendMessage(ChatColor.RED + "This player is not dead!");
+                        if (!quiet) sender.sendMessage(ChatColor.RED + "This player is not dead!");
                     }
                 }  else {
-                    sender.sendMessage(ChatColor.RED + "This player is not online!");
+                    if (!quiet) sender.sendMessage(ChatColor.RED + "This player is not online!");
                 }
             }
             autoSave();
         } else {
-            sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (It costs: " + cost + " live/s)");
+            if (!quiet) sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (It costs: " + cost + " live/s)");
         }
     }
 
