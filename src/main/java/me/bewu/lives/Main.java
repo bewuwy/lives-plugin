@@ -251,9 +251,9 @@ public final class Main extends JavaPlugin implements Listener {
                 //command /lives status
                 else if (args[0].equalsIgnoreCase("status")) {
                     if (started) {
-                        sender.sendMessage(ChatColor.GREEN + "Main counting is on.");
+                        sender.sendMessage(ChatColor.GREEN + "Lives counting is on.");
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Main counting is off.");
+                        sender.sendMessage(ChatColor.RED + "Lives counting is off.");
                     }
                 }
 
@@ -349,7 +349,7 @@ public final class Main extends JavaPlugin implements Listener {
                                 sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /l extract (number)!");
                             }
                         } else {
-                            sender.sendMessage(ChatColor.RED + "Main counting must be on to extract lives!");
+                            sender.sendMessage(ChatColor.RED + "Lives counting must be on to extract lives!");
                         }
                     } else {
                         sender.sendMessage("You can't use that command from the console!");
@@ -551,6 +551,7 @@ public final class Main extends JavaPlugin implements Listener {
             autoSave();
             if (playersLives.get(player.getUniqueId()) < 1) {
                 getServer().broadcastMessage(ChatColor.DARK_RED + player.getName() + " lost his last life.");
+                e.getEntity().getLocation().getWorld().strikeLightningEffect(e.getEntity().getLocation());
 
                 if(getConfig().getConfigurationSection("penalty").getString("type").equalsIgnoreCase("GM3")) {
                     player.setGameMode(GameMode.SPECTATOR);
@@ -646,7 +647,7 @@ public final class Main extends JavaPlugin implements Listener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        getLogger().info("[Main]: Saved lives to file");
+        getLogger().info("[Lives]: Saved lives to file");
     }
 
     public void loadLives() {
@@ -661,10 +662,10 @@ public final class Main extends JavaPlugin implements Listener {
             try {
                 playersLives.put(UUID.fromString(i), customConfig.getInt(i));
             } catch (IllegalArgumentException ignored) {
-                getLogger().warning("[Main]: Check lives.yml file, one of the entries is not a valid UUID and may cause plugin to 'crash'");
+                getLogger().warning("[Lives]: Check lives.yml file, one of the entries is not a valid UUID and may cause plugin to 'crash'");
             }
         }
-        getLogger().info("[Main]: Loaded lives from file");
+        getLogger().info("[Lives]: Loaded lives from file");
         updateScores();
     }
 
@@ -689,7 +690,6 @@ public final class Main extends JavaPlugin implements Listener {
 
             if (pen.equalsIgnoreCase("BAN") || pen.equalsIgnoreCase("TEMPBAN")) {
                 if (getServer().getBanList(BanList.Type.NAME).getBanEntry(name) != null) {
-
                     if (getServer().getBanList(BanList.Type.NAME).getBanEntry(name).getReason().equalsIgnoreCase(getConfig().getConfigurationSection("penalty").getString("banMessage"))) {
                         if (!admin) {
                             playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
@@ -699,33 +699,35 @@ public final class Main extends JavaPlugin implements Listener {
                         }
 
                         getServer().getBanList(BanList.Type.NAME).pardon(name);
-                    }
-                    else {
-                        sender.sendMessage(ChatColor.RED + "This player wasn't banned for loosing his last life! If you believe this is a mistake, please contact the server administrators.");
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "This player hasn't been banned for losing his last life! If you believe this is a mistake, please contact the server administrators.");
                     }
                 } else {
-                    sender.sendMessage(ChatColor.RED + "This player wasn't banned for losing his last life!");
+                    sender.sendMessage(ChatColor.RED + "This player hasn't been banned!");
                 }
             } else if (pen.equalsIgnoreCase("GM3")) {
                 if (getServer().getPlayer(name) != null) {
-                    getServer().getPlayer(name).setGameMode(GameMode.SURVIVAL);
-                    getServer().getPlayer(name).addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 350, 200, true, false));
+                    if (getServer().getPlayer(name).getGameMode() == GameMode.SPECTATOR) {
+                        getServer().getPlayer(name).setGameMode(GameMode.SURVIVAL);
+                        getServer().getPlayer(name).addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 350, 200, true, false));
 
-                    if(!admin) {
-                        playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
-                        sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
+                        if (!admin) {
+                            playersLives.put(((Player) sender).getUniqueId(), playersLives.get(((Player) sender).getUniqueId()) - cost);
+                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + " and took " + cost + " of your lives!");
+                        } else {
+                            sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
+                        }
+                        playersLives.put(getServer().getPlayer(name).getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
                     } else {
-                        sender.sendMessage(ChatColor.GREEN + "Revived " + name + "!");
+                        sender.sendMessage(ChatColor.RED + "This player is not dead!");
                     }
-
-                    playersLives.put(getServer().getPlayer(name).getUniqueId(), getConfig().getConfigurationSection("reviving").getInt("lives"));
                 }  else {
                     sender.sendMessage(ChatColor.RED + "This player is not online!");
                 }
             }
             autoSave();
         } else {
-            sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (" + (cost + 1) + " required)");
+            sender.sendMessage(ChatColor.RED + "You don't have enough lives to revive a player! (It costs: " + cost + " live/s)");
         }
     }
 
@@ -733,8 +735,11 @@ public final class Main extends JavaPlugin implements Listener {
         NamespacedKey key = new NamespacedKey(this, "lives");
         ItemMeta meta = item.getItemMeta();
 
-        assert meta != null;
-        return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING) && meta.getPersistentDataContainer().get(key, PersistentDataType.STRING).equals("item");
+        if (meta != null) {
+            return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING) && meta.getPersistentDataContainer().get(key, PersistentDataType.STRING).equals("item");
+        } else {
+            return false;
+        }
     }
 
     public void updateScores() {
@@ -756,7 +761,7 @@ public final class Main extends JavaPlugin implements Listener {
             } else if (getConfig().getConfigurationSection("scoreboard").getString("type").equalsIgnoreCase("UNDER_NAME")) {
                 objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
             } else {
-                getLogger().warning("[Main]: The option \"type\" in config file under section \"scoreboard\" was set to an incorrect value! Using TAB by default!");
+                getLogger().warning("[Lives]: The option \"type\" in config file under section \"scoreboard\" was set to an incorrect value! Using TAB by default!");
                 objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
             }
         }
