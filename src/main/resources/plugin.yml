@@ -7,6 +7,9 @@ commands:
   lives:
     description: Main command, to get help use /lives help
     aliases: [l]
+  lives_admin:
+    description: Admin command for lives plugin.
+    aliases: [la]
 permissions:
   lives.*:
     description: Gives you all plugin permissions
@@ -22,9 +25,6 @@ permissions:
     default: op
   lives.control:
     description: Allows you to turn counting lives on and off.
-    default: op
-  lives.config.reset:
-    description: Allows you to reset config file from command.
     default: op
   lives.save:
     description: Allows you to save/load lives to/from file.
