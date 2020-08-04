@@ -44,6 +44,8 @@ public final class Main extends JavaPlugin implements Listener {
     public void onEnable() {
         // Plugin startup logic
         Bukkit.getPluginManager().registerEvents(this, this);
+        getCommand("lives").setExecutor(this::onCommand);
+        getCommand("lives").setTabCompleter(new LivesTabCompleter());
 
         //bstats
         int pluginId = 8287;
@@ -120,7 +122,7 @@ public final class Main extends JavaPlugin implements Listener {
 
                 //command /lives reset (n) (revive)
                 else if (args[0].equalsIgnoreCase("reset")) {
-                    if (sender.hasPermission("lives.reset") || sender.hasPermission("lives.*")) {
+                    if (sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
 
                         if (args.length > 1) {
                             if (StringUtils.isNumeric(args[1])) {
