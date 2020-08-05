@@ -24,16 +24,17 @@ public class LivesTabCompleter implements TabCompleter {
                 arg1.add("get");
             }
 
-            if (args[0].length() > 0) {
-                arg1.removeIf(i -> !i.startsWith(args[0]));
-            }
+            arg1.removeIf(i -> !i.startsWith(args[0]));
 
             return arg1;
         }
 
-        else if (args.length == 2) {
-
-        }
+//        else if (args.length == 2) {
+//            if (args[0].equalsIgnoreCase("extract")) {
+//                List<String> count = new ArrayList<>();
+//                return count;
+//            }
+//        }
 
         return null;
     }

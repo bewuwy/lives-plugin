@@ -32,37 +32,31 @@ public class LivesAdminCommand implements CommandExecutor {
                         " - /la scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard\n");
             }
 
-            //command /la reset (n) (revive)
+            //command /la reset [n] (revive)
             else if (args[0].equalsIgnoreCase("reset")) {
                 if (sender.hasPermission("lives.set") || sender.hasPermission("lives.*")) {
-
                     if (args.length > 1) {
                         if (StringUtils.isNumeric(args[1])) {
                             for (Player i : Bukkit.getOnlinePlayers()) {
                                 Main.playersLives.put(i.getUniqueId(), Integer.valueOf(args[1]));
                             }
                             sender.sendMessage(ChatColor.GREEN + "Reset " + Bukkit.getOnlinePlayers().size() + " player/s lives to " + args[1]);
-                        } else if (args[1].equalsIgnoreCase("revive")) {
-                            for (Player i : Bukkit.getOnlinePlayers()) {
-                                Main.playersLives.put(i.getUniqueId(), Main.plugin.getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                                Main.revivePlayer(i.getName(), true, sender, true);
+
+                            if (args.length > 2 && args[2].equalsIgnoreCase("true")) {
+                                if (sender.hasPermission("lives.revive.admin")) {
+                                    for (Player i : Bukkit.getOnlinePlayers()) {
+                                        Main.revivePlayer(i.getName(), true, sender, true);
+                                    }
+                                    sender.sendMessage(ChatColor.GREEN + "Tried to revive " + Bukkit.getOnlinePlayers().size() + " player/s");
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "You don't have to permissions to do that!");
+                                }
                             }
-                            sender.sendMessage(ChatColor.GREEN + "Reset " + Bukkit.getOnlinePlayers().size() + " player/s lives to " + Main.plugin.getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                            sender.sendMessage(ChatColor.GREEN + "Tried to revive " + Bukkit.getOnlinePlayers().size() + " player/s");
                         } else {
-                            sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives reset (number) (revive)");
+                            sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /la reset [n] (revive)");
                         }
                     } else {
-                        for (Player i : Bukkit.getOnlinePlayers()) {
-                            Main.playersLives.put(i.getUniqueId(), Main.plugin.getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                        }
-                        sender.sendMessage(ChatColor.GREEN + "Reset " + Bukkit.getOnlinePlayers().size() + " player/s lives to " + Main.plugin.getConfig().getConfigurationSection("generalOptions").getInt("resetLives"));
-                    }
-                    if (args.length > 2 && args[2].equalsIgnoreCase("revive")) {
-                        for (Player i : Bukkit.getOnlinePlayers()) {
-                            Main.revivePlayer(i.getName(), true, sender, true);
-                        }
-                        sender.sendMessage(ChatColor.GREEN + "Tried to revive " + Bukkit.getOnlinePlayers().size() + " player/s");
+                        sender.sendMessage(ChatColor.RED + "Too few arguments! Use: /la reset [n] (revive)");
                     }
 
                     Main.autoSave();
@@ -75,28 +69,20 @@ public class LivesAdminCommand implements CommandExecutor {
             else if (args[0].equalsIgnoreCase("give")) {
                 if (sender instanceof Player) {
                     if (sender.hasPermission("lives.give") || sender.hasPermission("lives.*")) {
-                        if (args.length > 1) {
-                            if (StringUtils.isNumeric(args[1])) {
-                                Main.giveItem((Player) sender, Integer.parseInt(args[1]));
-                                sender.sendMessage(ChatColor.GREEN + "Gave you " + args[1] + " live item/s");
-                            } else if (Main.plugin.getServer().getPlayer(args[1]) != null) {
-                                if (args.length > 2) {
-                                    if (StringUtils.isNumeric(args[2])) {
-                                        Main.giveItem(Main.plugin.getServer().getPlayer(args[1]), Integer.parseInt(args[2]));
-                                        sender.sendMessage(ChatColor.GREEN + "Gave " + args[1] + " " + args[2] + " live item/s");
-                                    } else {
-                                        sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give (Player) [number]");
-                                    }
+                        if (Main.plugin.getServer().getPlayer(args[1]) != null) {
+                            if (args.length > 2) {
+                                if (StringUtils.isNumeric(args[2])) {
+                                    Main.giveItem(Main.plugin.getServer().getPlayer(args[1]), Integer.parseInt(args[2]));
+                                    sender.sendMessage(ChatColor.GREEN + "Gave " + args[1] + " " + args[2] + " live item/s");
                                 } else {
-                                    Main.giveItem(Main.plugin.getServer().getPlayer(args[1]), 1);
-                                    sender.sendMessage(ChatColor.GREEN + "Gave " + args[1] + " 1 live item");
+                                    sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give (Player) [number]");
                                 }
                             } else {
-                                sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give (Player) [number]");
+                                Main.giveItem(Main.plugin.getServer().getPlayer(args[1]), 1);
+                                sender.sendMessage(ChatColor.GREEN + "Gave " + args[1] + " 1 live item");
                             }
                         } else {
-                            Main.giveItem((Player) sender, 1);
-                            sender.sendMessage(ChatColor.GREEN + "Gave you 1 live item");
+                            sender.sendMessage(ChatColor.RED + "Invalid syntax! Use: /lives give (Player) [number]");
                         }
                     } else {
                         sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
@@ -127,10 +113,12 @@ public class LivesAdminCommand implements CommandExecutor {
             //command /la stop (quiet)
             else if (args[0].equalsIgnoreCase("stop")) {
                 if (sender.hasPermission("lives.control") || sender.hasPermission("lives.*")) {
-                    if (args.length > 1 && args[1].equalsIgnoreCase("quiet")) {
+                    if (args.length > 1 && args[1].equalsIgnoreCase("true")) {
+                        sender.sendMessage(ChatColor.RED + "Stopped counting lives!");
+                    }
+                    else {
                         Main.plugin.getServer().broadcastMessage(ChatColor.RED + "Stopped counting lives!");
                     }
-                    else { sender.sendMessage(ChatColor.RED + "Stopped counting lives!"); }
                     Main.started = false;
                 } else {
                     sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");
@@ -140,10 +128,12 @@ public class LivesAdminCommand implements CommandExecutor {
             //command /la start (quiet)
             else if (args[0].equalsIgnoreCase("start")) {
                 if (sender.hasPermission("lives.control") || sender.hasPermission("lives.*")) {
-                    if (args.length > 1 && args[1].equalsIgnoreCase("quiet")) {
+                    if (args.length > 1 && args[1].equalsIgnoreCase("true")) {
+                        sender.sendMessage(ChatColor.GREEN + "Started counting lives!");
+                    }
+                    else {
                         Main.plugin.getServer().broadcastMessage(ChatColor.GREEN + "Started counting lives!");
                     }
-                    else { sender.sendMessage(ChatColor.GREEN + "Started counting lives!"); }
                     Main.started = true;
                 } else {
                     sender.sendMessage(ChatColor.RED + "You don't have permissions to do that!");

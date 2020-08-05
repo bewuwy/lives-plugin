@@ -3,7 +3,6 @@
 generalOptions:
   itemName: Life        #Changes the name of the life item
   item: GHAST_TEAR      #Changes what is the life item. "List" of options: https://github.com/Bukkit/Bukkit/blob/master/src/main/java/org/bukkit/Material.java
-  resetLives: 3         #Changes the default amount of lives for /l reset
   onJoinLives: 3        #Changes how much lives a player has when joining for the first time
   defStarted: true      #If lives counting should be on when plugins starts
   alwaysExtract: false  #If player can extract lives when lives counting is off
@@ -24,7 +23,7 @@ penalty:
   banMessage: You lost your last life!
 
 reviving:
-  allowed: false        #If player can revive players with 0 lives
+  allowed: false        #If player can revive dead playerss
   cost: 3               #Cost (in lives) of revival
   lives: 3              #Number of lives you get after reviving
 

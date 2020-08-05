@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class LivesAdminTabCompleter implements TabCompleter {
@@ -40,15 +41,43 @@ public class LivesAdminTabCompleter implements TabCompleter {
                 arg1.add("scoreboard");
             }
 
-            if (args[0].length() > 0) {
-                arg1.removeIf(i -> !i.startsWith(args[0]));
-            }
+            arg1.removeIf(i -> !i.startsWith(args[0]));
+
 
             return arg1;
         }
 
         else if (args.length == 2) {
+//            if (args[0].equalsIgnoreCase("reset")) {
+//                List<String> count = new ArrayList<>();
+//                return count;
+//            }
+            if (args[0].equalsIgnoreCase("scoreboard") || args[0].equalsIgnoreCase("score")) {
+                List<String> arg2 = Arrays.asList("show", "hide", "update");
+                arg2.removeIf(i -> !i.startsWith(args[1]));
+                return arg2;
+            }
 
+
+        }
+
+        else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("reset")) {
+                List<String> revive = Arrays.asList("true", "false");
+                return revive;
+            }
+            else if (args[0].equalsIgnoreCase("start") || args[0].equalsIgnoreCase("stop")) {
+                List<String> quiet = Arrays.asList("true", "false");
+                return quiet;
+            }
+//            else if (args[0].equalsIgnoreCase("give")
+//                    || args[0].equalsIgnoreCase("set")
+//                    || args[0].equalsIgnoreCase("add")
+//                    || args[0].equalsIgnoreCase("addev") || args[0].equalsIgnoreCase("addeveryone")
+//                    || args[0].equalsIgnoreCase("remove")) {
+//                List<String> count = new ArrayList<>();
+//                return count;
+//            }
         }
 
         return null;
