@@ -17,6 +17,7 @@ public class LivesCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (command.getName().equalsIgnoreCase("lives") || command.getName().equalsIgnoreCase("l")) {
+
             //command /lives (/l)
             if (args.length == 0) {
                 if(sender instanceof Player) {
@@ -65,7 +66,7 @@ public class LivesCommand implements CommandExecutor {
                         " - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)\n" +
                         " - /lives revive [Player] (Alias: /l rev) - revives a player for some lives\n" +
                         " - /lives status - tells if lives counting is on or off\n" +
-                        " - /lives help - displays this list");
+                        " - /lives help - shows this list");
             }
 
             //command /lives extract (number) Alias: /l ex

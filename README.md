@@ -8,29 +8,28 @@ This is a repository of my 1.15.2 Minecraft plugin.
 This plugin adds every player lives. When someone looses his last live, his gamemode is changed to spectator until the lives counter is reset. You loose a live if you die and you can get it by using a certain item.
 
 ## Commands ##
-You can see all commands in-game by using /lives help admin
 
 **Default commands:**
-- **/lives (Player)** (Alias: /l) - tells you how many lives you (or specified player) have
-- **/lives get [Player]** - tells you how many lives the player has
-- **/lives extract (n)** (Alias: /l ex) - extracts n of your lives to an item (def 1)
-- **/lives revive [Player]** (Alias: /l rev) - revives a player for some lives
-- **/lives status** - tells if lives counting is on or off
-- **/lives help (admin)** - shows list of commands in-game (def without admin commands)
+ - **/lives (Player)** (Alias: /l) - tells you how many lives you (or specified player) have
+ - **/lives get [Player]** - tells you how many lives the player has
+ - **/lives extract (n)** (Alias: /l ex) - extracts n of your lives to an item (def 1)
+ - **/lives revive [Player]** (Alias: /l rev) - revives a player for some lives
+ - **/lives status** - tells if lives counting is on or off
+ - **/lives help** - shows this list
 
 
 **Administrator commands:**
-- **/lives reset (n) (revive)** - resets lives counter for everyone to n lives (def 3), if run with revive options, revives everyone
-- **/lives give (Player) (n)** - gives you (or specified player) n live items (def 1)
-- **/lives set [Player] [n]** - sets players lives to n
-- **/lives add [Player] [n]** - adds player n lives
-- **/lives remove [Player] [n]** - removes player n lives
-- **/lives addeveryone [n]** (Alias: /l addev) - adds everyone n lives
-- **/lives admin_revive [Player]** (Alias: /l arev) - revives a player "for free"
-- **/lives [start | stop]** - stops/starts lives counting
-- **/lives [save | load]** - saves/loads lives to/from file
-- **/lives scoreboard [show | hide]** (Alias: /l score) - shows/hides the lives scoreboard
-- **/lives reset_config** - resets config to default values
+- **/la reset [n] (revive)** - resets lives counter for everyone to n lives, if run with revive option, revives everyone
+- **/la give [Player] (n)** - gives you (or specified player) n live items (def 1)
+- **/la set [Player] [n]** - sets players lives to n
+- **/la add [Player] [n]** - adds player n lives
+- **/la remove [Player] [n]** - removes n lives from player
+- **/la addeveryone [n]** (Alias: /la addev) - adds everyone n lives
+- **/la admin_revive [Player]** (Alias: /la arev) - revives a player "for free"
+- **/la [start | stop]** - stops/starts lives counting
+- **/la [save | load]** - saves/loads lives to/from file
+- **/la scoreboard [show | hide | update]** (Alias: /la score) - shows/hides/updates the lives scoreboard
+- **/la help** - shows this list
 
 
 ## Permissions ##
@@ -51,14 +50,11 @@ Plugins Permissions:
   - **lives.control**:
       Allows you to turn counting lives on and off.
       default: op
-  - **lives.config.reset**:
-      Allows you to reset config file from command.
-      default: op
   - **lives.save**:
       Allows you to save/load lives to/from file.
       default: op
   - **lives.moveItem**:
-      Allows you to move item.
+      Allows you to move the life item in inventory.
       default: op
   - **lives.scoreboard**:
       Allows you to show/hide scoreboard

@@ -5,18 +5,18 @@ Default commands:
  - /lives extract (n) (Alias: /l ex) - extracts n of your lives to an item (def 1)
  - /lives revive [Player] (Alias: /l rev) - revives a player for some lives
  - /lives status - tells if lives counting is on or off
- - /lives help (admin) - shows list of commands in-game (def without admin commands)
+ - /lives help - shows this list
 
 Administrator commands:
 
- - /lives reset (n) (revive) - resets lives counter for everyone to n lives (def 3), if run with revive options, revives everyone
- - /lives give (Player) (n) - gives you (or specified player) n live items (def 1)
- - /lives set [Player] [n] - sets players lives to n
- - /lives add [Player] [n] - adds player n lives
- - /lives remove [Player] [n] - removes player n lives
- - /lives addeveryone [n] (Alias: /l addev) - adds everyone n lives
- - /lives admin_revive [Player] (Alias: /l arev) - revives a player "for free"
- - /lives [start | stop] - stops/starts lives counting
- - /lives [save | load] - saves/loads lives to/from file
- - /lives scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard
- - /lives reset_config - resets config to default values
+ - /la reset [n] (revive) - resets lives counter for everyone to n lives, if run with revive option, revives everyone
+ - /la give [Player] (n) - gives you (or specified player) n live items (def 1)
+ - /la set [Player] [n] - sets players lives to n
+ - /la add [Player] [n] - adds player n lives
+ - /la remove [Player] [n] - removes n lives from player
+ - /la addeveryone [n] (Alias: /la addev) - adds everyone n lives
+ - /la admin_revive [Player] (Alias: /la arev) - revives a player "for free"
+ - /la [start | stop] - stops/starts lives counting
+ - /la [save | load] - saves/loads lives to/from file
+ - /la scoreboard [show | hide | update] (Alias: /la score) - shows/hides/updates the lives scoreboard
+ - /la help - shows this list

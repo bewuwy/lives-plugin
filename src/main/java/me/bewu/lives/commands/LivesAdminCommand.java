@@ -20,16 +20,17 @@ public class LivesAdminCommand implements CommandExecutor {
             //command /la help
             if (args[0].equalsIgnoreCase("help")) {
                 sender.sendMessage(ChatColor.YELLOW + "\n Administrator commands:\n" + ChatColor.RESET +
-                        " - /la reset (n) (revive) - resets lives counter for everyone to n lives (def 3), if run with revive options, revives everyone\n" +
-                        " - /la give (Player) (n) - gives you (or specified player) n live items (def 1)\n" +
+                        " - /la reset [n] (revive) - resets lives counter for everyone to n lives, if run with revive option, revives everyone\n" +
+                        " - /la give [Player] (n) - gives you (or specified player) n live items (def 1)\n" +
                         " - /la set [Player] [n] - sets players lives to n\n" +
                         " - /la add [Player] [n] - adds player n lives\n" +
-                        " - /la remove [Player] [n] - removes player n lives\n" +
-                        " - /la addeveryone [n] (Alias: /l addev) - adds everyone n lives\n" +
-                        " - /la admin_revive [Player] (Alias: /l arev) - revives a player \"for free\"\n" +
+                        " - /la remove [Player] [n] - removes n lives from player\n" +
+                        " - /la addeveryone [n] (Alias: /la addev) - adds everyone n lives\n" +
+                        " - /la admin_revive [Player] (Alias: /la arev) - revives a player \"for free\"\n" +
                         " - /la [start | stop] - stops/starts lives counting\n" +
                         " - /la [save | load] - saves/loads lives to/from file\n" +
-                        " - /la scoreboard [show | hide] (Alias: /l score) - shows/hides the lives scoreboard\n");
+                        " - /la scoreboard [show | hide | update] (Alias: /la score) - shows/hides/updates the lives scoreboard\n" +
+                        " - /la help - shows this list");
             }
 
             //command /la reset [n] (revive)
